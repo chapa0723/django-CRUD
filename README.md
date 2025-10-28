@@ -262,55 +262,256 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 python manage.py collectstatic --noinput
 ```
 
-#### 3. Ejecutar con Gunicorn (Producción)
+#### 3. Instalar y Configurar Gunicorn
 
-Instalar Gunicorn:
+**Instalar Gunicorn:**
 
 ```bash
+# En el entorno virtual del proyecto
 pip install gunicorn
+
+# Agregar a requirements.txt
+echo "gunicorn==21.2.0" >> requirements.txt
 ```
 
-Ejecutar la aplicación:
+#### 4. Configurar Gunicorn
+
+Crear archivo de configuración de Gunicorn en la raíz del proyecto:
 
 ```bash
-# Desarrollo (mejor para testing)
-gunicorn djangocrud.wsgi:application --bind 127.0.0.1:8000
-
-# Producción (con múltiples workers)
-gunicorn djangocrud.wsgi:application --bind 127.0.0.1:8000 --workers 4 --timeout 30
+nano gunicorn.conf.py
 ```
 
-Para ejecutar en segundo plano con systemd, crear archivo:
+**Contenido del archivo:**
+
+```python
+# gunicorn.conf.py
+import multiprocessing
+
+# Configuración básica
+bind = "127.0.0.1:8000"
+workers = multiprocessing.cpu_count() * 2 + 1  # Fórmula recomendada
+worker_class = "sync"
+worker_connections = 1000
+max_requests = 1000
+max_requests_jitter = 50
+timeout = 30
+keepalive = 5
+preload_app = True
+
+# Logging
+accesslog = "-"  # stdout
+errorlog = "-"   # stderr
+loglevel = "info"
+access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
+
+# Proceso
+daemon = False
+pidfile = "/var/run/gunicorn-task.pid"
+umask = 0
+user = None
+group = None
+tmp_upload_dir = None
+
+# Hooks
+def on_starting(server):
+    server.log.info("Servidor Gunicorn iniciado")
+
+def on_reload(server):
+    server.log.info("Recargando configuración")
+
+def worker_int(worker):
+    worker.log.info("Worker recibe señal INT o QUIT")
+
+def pre_fork(server, worker):
+    pass
+
+def post_fork(server, worker):
+    server.log.info("Worker spawned (pid: %s)", worker.pid)
+
+def post_worker_init(worker):
+    pass
+
+def when_ready(server):
+    server.log.info("Servidor listo. Spawning workers")
+```
+
+**Ejecutar Gunicorn:**
+
+```bash
+# Modo básico (testing)
+gunicorn djangocrud.wsgi:application
+
+# Usando archivo de configuración
+gunicorn djangocrud.wsgi:application -c gunicorn.conf.py
+
+# Modo producción (línea de comandos)
+gunicorn djangocrud.wsgi:application \
+    --bind 127.0.0.1:8000 \
+    --workers 4 \
+    --worker-class sync \
+    --timeout 30 \
+    --keep-alive 5 \
+    --access-logfile - \
+    --error-logfile - \
+    --log-level info
+```
+
+#### 5. Crear Servicio Systemd
+
+Crear archivo de servicio para Gunicorn:
 
 ```bash
 sudo nano /etc/systemd/system/django-task.service
 ```
 
-**Contenido:**
+**Contenido (AJUSTAR LAS RUTAS SEGÚN TU PROYECTO):**
 
 ```ini
 [Unit]
-Description=Django Task App Gunicorn daemon
+Description=Django Task App - Gunicorn daemon
 After=network.target
 
 [Service]
 User=www-data
 Group=www-data
-WorkingDirectory=/ruta/a/tu/proyecto/django-CRUD
-Environment="PATH=/ruta/a/tu/proyecto/env/bin"
-ExecStart=/ruta/a/tu/proyecto/env/bin/gunicorn djangocrud.wsgi:application --bind 127.0.0.1:8000 --workers 4
+RuntimeDirectory=gunicorn
+WorkingDirectory=/home/usuario/django-CRUD
+ExecStart=/home/usuario/django-CRUD/env/bin/gunicorn \
+    --config /home/usuario/django-CRUD/gunicorn.conf.py \
+    djangocrud.wsgi:application
+
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
+Restart=always
+RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Activar el servicio:
+**Activar y gestionar el servicio:**
 
 ```bash
+# Recargar systemd
 sudo systemctl daemon-reload
-sudo systemctl enable django-task
+
+# Habilitar inicio automático
+sudo systemctl enable django-task.service
+
+# Iniciar el servicio
 sudo systemctl start django-task
+
+# Ver estado
 sudo systemctl status django-task
+
+# Ver logs
+sudo journalctl -u django-task -f
+```
+
+**Comandos útiles del servicio:**
+
+```bash
+# Reiniciar
+sudo systemctl restart django-task
+
+# Parar
+sudo systemctl stop django-task
+
+# Ver logs en tiempo real
+sudo journalctl -u django-task -f --lines=50
+
+# Verificar puerto
+sudo netstat -tlnp | grep 8000
+```
+
+#### 6. Verificación del Despliegue
+
+Verificar que todo funciona correctamente:
+
+```bash
+# 1. Verificar que Gunicorn está corriendo
+ps aux | grep gunicorn
+
+# 2. Probar la aplicación
+curl http://127.0.0.1:8000/
+
+# 3. Verificar logs
+tail -f /var/log/gunicorn-task.log
+
+# 4. Verificar procesos
+sudo systemctl status django-task
+```
+
+#### 7. Optimización de Gunicorn
+
+**Determinar número óptimo de workers:**
+
+```bash
+# Verificar CPUs disponibles
+nproc
+
+# Fórmula: (2 x CPUs) + 1
+# Ejemplo: 4 CPUs = 9 workers
+
+# Para producción con muchos usuarios
+workers = 8
+threads = 2
+worker_class = "gthread"
+```
+
+**Archivo de configuración optimizado:**
+
+```python
+# gunicorn.conf.py - Producción
+import multiprocessing
+
+bind = "127.0.0.1:8000"
+workers = 8
+threads = 2
+worker_class = "gthread"
+worker_connections = 1000
+timeout = 30
+keepalive = 5
+max_requests = 1000
+max_requests_jitter = 50
+preload_app = True
+
+# Logging
+accesslog = "/var/log/gunicorn-task-access.log"
+errorlog = "/var/log/gunicorn-task-error.log"
+loglevel = "info"
+
+# PID
+pidfile = "/var/run/gunicorn-task.pid"
+```
+
+#### 8. Configurar Logs
+
+Para gestionar logs de Gunicorn con logrotate:
+
+```bash
+sudo nano /etc/logrotate.d/gunicorn-task
+```
+
+**Contenido:**
+
+```
+/var/log/gunicorn-task-*.log {
+    daily
+    missingok
+    rotate 52
+    compress
+    delaycompress
+    notifempty
+    create 0640 www-data www-data
+    sharedscripts
+    postrotate
+        systemctl reload django-task > /dev/null
+    endscript
+}
 ```
 
 ---
