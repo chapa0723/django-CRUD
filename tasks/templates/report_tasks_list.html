@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold text-primary">
+      <i class="bi bi-list-ul"></i> {{ report_title }}
+    </h1>
+    <div class="btn-group">
+      <a href="{% url 'reports' %}" class="btn btn-outline-primary">
+        <i class="bi bi-arrow-left"></i> Volver a Reportes
+      </a>
+    </div>
+  </div>
+
+  {% if report_type == 'created' or report_type == 'completed' %}
+  <div class="card mb-4 border-0 shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title">Filtros</h5>
+      <form method="get" class="d-flex gap-2 align-items-end">
+        <div class="form-group flex-grow-1">
+          <label for="days" class="form-label">Período en días</label>
+          <input type="number" class="form-control" id="days" name="days" value="{{ context.period_days }}" min="1" max="365">
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-funnel"></i> Filtrar
+        </button>
+        <a href="{% url 'report_tasks_created' %}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-counterclockwise"></i> Resetear
+        </a>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="alert alert-info">
+    <strong>Total: {{ context.total }}</strong> tareas encontradas
+    {% if context.start_date %}
+      desde {{ context.start_date|date:"d/m/Y" }}
+    {% endif %}
+  </div>
+
+  {% if context.tasks %}
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    {% for task in context.tasks %}
+    <div class="col">
+      <div class="card shadow-lg h-100 border-0">
+        <div class="card-body">
+          <h5 class="card-title">
+            {% if task.important %}
+            <i class="bi bi-star-fill text-warning"></i>
+            <strong>{{ task.title }}</strong>
+            {% else %}
+            {{ task.title }}
+            {% endif %}
+          </h5>
+          <p class="card-text text-muted">{{ task.description|truncatewords:10 }}</p>
+          <small class="text-secondary">
+            <i class="bi bi-calendar"></i> Creada: {{ task.created|date:"d/m/Y" }}
+          </small>
+          {% if task.datecompleted %}
+          <br>
+          <small class="text-success">
+            <i class="bi bi-check-circle"></i> Completada: {{ task.datecompleted|date:"d/m/Y" }}
+          </small>
+          {% endif %}
+        </div>
+        <div class="card-footer bg-white">
+          <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-eye"></i> Ver Detalle
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="alert alert-warning text-center">
+    <i class="bi bi-inbox"></i> No se encontraron tareas con los filtros seleccionados.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+

@@ -35,9 +35,19 @@
           </a>
         </li>
         <li class="nav-item">
+          <a href="{% url 'reports' %}" class="nav-link {% if '/reports/' in request.path %}active{% endif %}">
+            <i class="bi bi-graph-up me-1"></i> Reportes
+          </a>
+        </li>
+        <li class="nav-item">
           <a href="{% url 'create_task' %}" class="nav-link {% if request.path == '/create_task/' %}active{% endif %}">
             <i class="bi bi-plus-circle me-1"></i> Nueva
           </a>
+        </li>
+        <li class="nav-item">
+          <button type="button" id="globalThemeToggle" class="nav-link btn btn-link text-light" title="Cambiar tema">
+            <i class="bi bi-moon-fill" id="globalThemeIcon"></i>
+          </button>
         </li>
         <li class="nav-item dropdown">
           <a
@@ -72,3 +82,32 @@
     </div>
   </div>
 </nav>
+
+<script>
+  // Funcionalidad global para cambiar el tema desde cualquier página
+  (function() {
+    const themeToggle = document.getElementById('globalThemeToggle');
+    const themeIcon = document.getElementById('globalThemeIcon');
+    
+    // Verificar preferencia guardada y actualizar icono
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark' && themeIcon) {
+      themeIcon.className = 'bi bi-sun-fill';
+    }
+    
+    // Cambiar tema al hacer clic
+    if (themeToggle && themeIcon) {
+      themeToggle.addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        
+        if (document.body.classList.contains('dark-mode')) {
+          localStorage.setItem('theme', 'dark');
+          themeIcon.className = 'bi bi-sun-fill';
+        } else {
+          localStorage.setItem('theme', 'light');
+          themeIcon.className = 'bi bi-moon-fill';
+        }
+      });
+    }
+  })();
+</script>

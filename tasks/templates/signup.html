@@ -17,7 +17,38 @@
 
       <form action="/signup/" method="POST" novalidate>
         {% csrf_token %}
-        {{ form.as_p }}
+        
+        <div class="mb-3">
+          <label class="form-label">Nombre de usuario</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <div class="text-danger small">{{ form.username.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Contraseña</label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}
+            <div class="text-danger small">{{ form.password1.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Confirmar contraseña</label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}
+            <div class="text-danger small">{{ form.password2.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">CAPTCHA</label>
+          {{ form.captcha }}
+          {% if form.captcha.errors %}
+            <div class="text-danger small">{{ form.captcha.errors }}</div>
+          {% endif %}
+        </div>
 
         <button type="submit" class="btn btn-primary w-100 mt-2">
           <i class="bi bi-check-circle me-1"></i> Registrarme

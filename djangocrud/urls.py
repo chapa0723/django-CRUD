@@ -14,8 +14,9 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from tasks import views
+from tasks import reports
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -29,4 +30,15 @@ urlpatterns = [
     path('tasks/<int:task_id>', views.task_detail, name='task_detail'),
     path('taks/<int:task_id>/complete', views.complete_task, name='complete_task'),
     path('tasks/<int:task_id>/delete', views.delete_task, name='delete_task'),
+    
+    # URLs para reportes
+    path('reports/', reports.task_reports, name='reports'),
+    path('reports/created/', reports.report_tasks_created_period, name='report_tasks_created'),
+    path('reports/completed/', reports.report_tasks_completed_period, name='report_tasks_completed'),
+    path('reports/by_user/', reports.report_tasks_by_user, name='report_tasks_by_user'),
+    path('reports/by_importance/', reports.report_tasks_by_importance, name='report_tasks_by_importance'),
+    path('reports/old_pending/', reports.report_old_pending_tasks, name='report_old_pending_tasks'),
+    
+    # URLs para CAPTCHA
+    path('captcha/', include('captcha.urls')),
 ]

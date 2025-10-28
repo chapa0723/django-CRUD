@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold text-primary">
+      <i class="bi bi-star-half"></i> {{ report_title }}
+    </h1>
+    <a href="{% url 'reports' %}" class="btn btn-outline-primary">
+      <i class="bi bi-arrow-left"></i> Volver a Reportes
+    </a>
+  </div>
+
+  <div class="alert alert-info">
+    <strong>Total: {{ context.total }}</strong> tareas en el sistema
+  </div>
+
+  {% if context.grouped_data %}
+  <div class="row g-4 mb-4">
+    {% for item in context.grouped_data %}
+    <div class="col-md-6">
+      <div class="card border-0 shadow-sm {% if item.important %}border-danger{% else %}border-secondary{% endif %}">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">
+              {% if item.important %}
+              <i class="bi bi-star-fill text-danger"></i> Importantes
+              {% else %}
+              <i class="bi bi-star text-secondary"></i> No Importantes
+              {% endif %}
+            </h5>
+            <span class="badge {% if item.important %}bg-danger{% else %}bg-secondary{% endif %} rounded-pill fs-6">
+              {{ item.total }} tareas
+            </span>
+          </div>
+          
+          <div class="row text-center mb-3">
+            <div class="col-6">
+              <div class="border-end">
+                <h4 class="text-success mb-0">{{ item.completed }}</h4>
+                <small class="text-muted">Completadas</small>
+              </div>
+            </div>
+            <div class="col-6">
+              <h4 class="text-warning mb-0">{{ item.pending }}</h4>
+              <small class="text-muted">Pendientes</small>
+            </div>
+          </div>
+
+          <div class="progress" style="height: 25px;">
+            <div class="progress-bar bg-success" 
+                 role="progressbar" 
+                 style="width: {% if item.total > 0 %}{% widthratio item.completed item.total 100 %}{% else %}0{% endif %}%"
+                 aria-valuenow="{{ item.completed }}" 
+                 aria-valuemin="0" 
+                 aria-valuemax="{{ item.total }}">
+              {% if item.total > 0 %}
+              {% widthratio item.completed item.total 100 %}% completadas
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="alert alert-warning text-center">
+    <i class="bi bi-inbox"></i> No hay datos disponibles.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+

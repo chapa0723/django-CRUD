@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold text-primary">
+      <i class="bi bi-people"></i> {{ report_title }}
+    </h1>
+    <a href="{% url 'reports' %}" class="btn btn-outline-primary">
+      <i class="bi bi-arrow-left"></i> Volver a Reportes
+    </a>
+  </div>
+
+  <div class="alert alert-info">
+    <strong>Total: {{ context.total }}</strong> tareas en el sistema
+  </div>
+
+  {% if context.grouped_data %}
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <table class="table table-hover">
+        <thead class="table-light">
+          <tr>
+            <th>Usuario</th>
+            <th class="text-center">Total</th>
+            <th class="text-center">Completadas</th>
+            <th class="text-center">Pendientes</th>
+            <th class="text-center">Importantes</th>
+            <th class="text-center">Progreso</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in context.grouped_data %}
+          <tr>
+            <td>
+              <strong>{{ item.user__username }}</strong>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-primary rounded-pill">{{ item.total }}</span>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-success rounded-pill">{{ item.completed }}</span>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-warning rounded-pill">{{ item.pending }}</span>
+            </td>
+            <td class="text-center">
+              <span class="badge bg-danger rounded-pill">{{ item.important }}</span>
+            </td>
+            <td>
+              <div class="progress" style="height: 20px;">
+                {% if item.total > 0 %}
+                <div class="progress-bar bg-success" 
+                     role="progressbar" 
+                     style="width: {% widthratio item.completed item.total 100 %}%"
+                     aria-valuenow="{{ item.completed }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="{{ item.total }}">
+                </div>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <div class="alert alert-warning text-center">
+    <i class="bi bi-inbox"></i> No hay datos disponibles.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+

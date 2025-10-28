@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-(oa(omhdw75#3qzk_p-6zfdfmvj#%tn=oci!ww+ssog(ib%-o=
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.100.2', '127.0.0.1', 'task.yacaresoft.com']
 
 
 # Application definition
@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tasks'
+    'captcha',
+    'tasks',
     'users',
 ]
 
@@ -125,3 +126,32 @@ LOGIN_URL = '/signin'
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# ==========================================
+# CONFIGURACIÓN PARA PRODUCCIÓN CON HTTPS
+# ==========================================
+# Descomentar estas líneas cuando despliegues en producción
+# con certificado SSL en task.yacaresoft.com
+
+# DEBUG = False  # Cambiar a False en producción
+
+# Configuración para HTTPS
+# SECURE_SSL_REDIRECT = True  # Redirigir HTTP a HTTPS
+# SESSION_COOKIE_SECURE = True  # Cookies solo por HTTPS
+# CSRF_COOKIE_SECURE = True  # CSRF solo por HTTPS
+# SECURE_BROWSER_XSS_FILTER = True
+# SECURE_CONTENT_TYPE_NOSNIFF = True
+# X_FRAME_OPTIONS = 'DENY'  # Protección clickjacking
+# SECURE_HSTS_SECONDS = 31536000  # HTTPS Strict Transport Security (1 año)
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
+
+# Proxy configuración (importante cuando usas Nginx como reverse proxy)
+# USE_X_FORWARDED_HOST = True
+# SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# Archivos estáticos y media
+# STATIC_ROOT = BASE_DIR / 'staticfiles'
+# MEDIA_ROOT = BASE_DIR / 'media'
+# MEDIA_URL = '/media/'
