@@ -9,6 +9,32 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script>
 
+    <style>
+      /* Estilos globales para modo oscuro */
+      body.dark-mode {
+        background-color: #121212 !important;
+        color: #e0e0e0 !important;
+      }
+      
+      body.dark-mode .navbar-dark {
+        background-color: #1a1a1a !important;
+      }
+      
+      body.dark-mode .container {
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+    </style>
+    
+    <script>
+      // Aplicar tema guardado globalmente al cargar la página
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+          document.body.classList.add('dark-mode');
+        }
+      })();
+    </script>
     
   </head>
   <body>
