@@ -11,7 +11,3 @@ gunicorn==21.2.0
 pycodestyle==2.9.1
 sqlparse==0.4.2
 toml==0.10.2
-
-# Agregamos esto a ver si por fin levanta el proyecto en la web de render
-#backports.zoneinfo;python_version<"3.9"
-python==3.14.0
