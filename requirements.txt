@@ -1,7 +1,7 @@
 #asgiref==3.5.2
 asgiref==3.6.0
 autopep8==1.7.0
-backports.zoneinfo==0.2.1
+#backports.zoneinfo==0.2.1
 #Django==4.1
 Django==4.2
 django-simple-captcha==0.6.2
@@ -14,4 +14,4 @@ toml==0.10.2
 
 # Agregamos esto a ver si por fin levanta el proyecto en la web de render
 #backports.zoneinfo;python_version<"3.9"
-python==3.14.0
+#python==3.14.0
