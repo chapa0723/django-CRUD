@@ -23,10 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-(oa(omhdw75#3qzk_p-6zfdfmvj#%tn=oci!ww+ssog(ib%-o='
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+#DEBUG = False
+DEBUG = 'RENDER' not in os.environ
 
 #ALLOWED_HOSTS = ['192.168.100.2', '127.0.0.1', 'task.yacaresoft.com']
 ALLOWED_HOSTS = []
+RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+IF RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOST.append(RENDER_EXTERNAL_HOSTNAME)
 
 # Application definition
 
