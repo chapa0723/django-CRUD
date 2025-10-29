@@ -13,5 +13,5 @@ sqlparse==0.4.2
 toml==0.10.2
 
 # Agregamos esto a ver si por fin levanta el proyecto en la web de render
-backports.zoneinfo;python_version<"3.9"
-
+#backports.zoneinfo;python_version<"3.9"
+python=3.14.0
