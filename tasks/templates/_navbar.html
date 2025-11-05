@@ -1,7 +1,9 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
   <div class="container">
-    <a class="navbar-brand fw-bold" href="/">
-      <i class="bi bi-check2-circle me-2 text-success"></i> TareasApp
+    {% load static %}
+    <a class="navbar-brand fw-bold" href="/" >
+      <!-- <i class="bi bi-check2-circle me-2 text-success"></i> --> 
+      <img src="{% static 'tasks/images/logo-yacare-negro.png' %}" alt="Logo de YacareSoft" width="34" height="34" class="d-inline-block align-text-top" style="position: relative; top: -3px;"> TareasApp
     </a>
     <button
       class="navbar-toggler"
