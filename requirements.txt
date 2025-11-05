@@ -11,3 +11,4 @@ gunicorn==21.2.0
 pycodestyle==2.9.1
 sqlparse==0.4.2
 toml==0.10.2
+xhtml2pdf==0.2.16

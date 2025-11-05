@@ -141,6 +141,9 @@
       <a href="{% url 'tasks' %}" class="btn btn-outline-secondary">
         <i class="bi bi-arrow-left"></i> Volver
       </a>
+      <a href="{% url 'tasks_details_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-danger" target="_blank">
+        <i class="bi bi-file-pdf"></i> Descargar PDF
+      </a>
     </div>
   </div>
 

@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
+from django.template.loader import get_template
 from .models import Task, TaskPermission
 from .forms import TaskForm
 from .auth_forms import SignUpForm, SignInForm
@@ -201,3 +203,96 @@ def tasks_details(request):
         'sort_by': sort_by,
         'sort_order': sort_order,
     })
+
+
+@login_required
+def tasks_details_pdf(request):
+    """Vista para generar PDF del listado de tareas con los mismos filtros y ordenamiento"""
+    # Obtener todas las tareas accesibles al usuario
+    all_tasks = get_user_accessible_tasks(request.user)
+    
+    # Obtener parámetros de filtrado (mismo código que tasks_details)
+    filter_status = request.GET.get('status', '')
+    filter_important = request.GET.get('important', '')
+    filter_date_from = request.GET.get('date_from', '')
+    filter_date_to = request.GET.get('date_to', '')
+    
+    # Aplicar filtros
+    tasks = all_tasks
+    
+    if filter_status == 'completed':
+        tasks = tasks.filter(datecompleted__isnull=False)
+    elif filter_status == 'pending':
+        tasks = tasks.filter(datecompleted__isnull=True)
+    
+    if filter_important == 'yes':
+        tasks = tasks.filter(important=True)
+    elif filter_important == 'no':
+        tasks = tasks.filter(important=False)
+    
+    if filter_date_from:
+        from django.utils.dateparse import parse_date
+        date_from = parse_date(filter_date_from)
+        if date_from:
+            tasks = tasks.filter(created__gte=date_from)
+    
+    if filter_date_to:
+        from django.utils.dateparse import parse_date
+        date_to = parse_date(filter_date_to)
+        if date_to:
+            tasks = tasks.filter(created__lte=date_to)
+    
+    # Obtener parámetro de ordenamiento
+    sort_by = request.GET.get('sort', 'created')
+    sort_order = request.GET.get('order', 'desc')
+    
+    # Validar y aplicar ordenamiento
+    valid_sort_fields = ['title', 'user__username', 'created', 'datecompleted', 'important']
+    if sort_by in valid_sort_fields:
+        if sort_order == 'asc':
+            tasks = tasks.order_by(sort_by)
+        else:
+            tasks = tasks.order_by(f'-{sort_by}')
+    else:
+        tasks = tasks.order_by('-created')
+    
+    # Generar PDF
+    try:
+        from xhtml2pdf import pisa
+        from io import BytesIO
+        from django.template import Context
+        
+        template = get_template('tasks_details_pdf.html')
+        html = template.render({
+            'tasks': tasks,
+            'user': request.user,
+            'filter_status': filter_status,
+            'filter_important': filter_important,
+            'filter_date_from': filter_date_from,
+            'filter_date_to': filter_date_to,
+        })
+        
+        result = BytesIO()
+        pdf = pisa.CreatePDF(src=BytesIO(html.encode("UTF-8")), dest=result)
+        
+        if not pdf.err:
+            response = HttpResponse(result.getvalue(), content_type='application/pdf')
+            filename = f"tareas_detalle_{timezone.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+        else:
+            return HttpResponse('Error al generar el PDF', status=500)
+    except ImportError:
+        # Si xhtml2pdf no está instalado, usar alternativa simple
+        from django.template.loader import render_to_string
+        html_content = render_to_string('tasks_details_pdf_simple.html', {
+            'tasks': tasks,
+            'user': request.user,
+            'filter_status': filter_status,
+            'filter_important': filter_important,
+            'filter_date_from': filter_date_from,
+            'filter_date_to': filter_date_to,
+        })
+        response = HttpResponse(html_content, content_type='text/html')
+        response['Content-Disposition'] = 'attachment; filename="tareas_detalle.html"'
+        return response
