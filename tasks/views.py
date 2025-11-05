@@ -138,3 +138,66 @@ def delete_task(request, task_id):
     if request.method == 'POST':
         task.delete()
         return redirect('tasks')
+
+
+@login_required
+def tasks_details(request):
+    """Vista para mostrar todas las tareas en formato detallado con tabla ordenable y filtros"""
+    # Obtener todas las tareas accesibles al usuario
+    all_tasks = get_user_accessible_tasks(request.user)
+    
+    # Obtener parámetros de filtrado
+    filter_status = request.GET.get('status', '')
+    filter_important = request.GET.get('important', '')
+    filter_date_from = request.GET.get('date_from', '')
+    filter_date_to = request.GET.get('date_to', '')
+    
+    # Aplicar filtros
+    tasks = all_tasks
+    
+    if filter_status == 'completed':
+        tasks = tasks.filter(datecompleted__isnull=False)
+    elif filter_status == 'pending':
+        tasks = tasks.filter(datecompleted__isnull=True)
+    
+    if filter_important == 'yes':
+        tasks = tasks.filter(important=True)
+    elif filter_important == 'no':
+        tasks = tasks.filter(important=False)
+    
+    if filter_date_from:
+        from django.utils.dateparse import parse_date
+        date_from = parse_date(filter_date_from)
+        if date_from:
+            tasks = tasks.filter(created__gte=date_from)
+    
+    if filter_date_to:
+        from django.utils.dateparse import parse_date
+        date_to = parse_date(filter_date_to)
+        if date_to:
+            tasks = tasks.filter(created__lte=date_to)
+    
+    # Obtener parámetro de ordenamiento
+    sort_by = request.GET.get('sort', 'created')
+    sort_order = request.GET.get('order', 'desc')
+    
+    # Validar y aplicar ordenamiento
+    valid_sort_fields = ['title', 'user__username', 'created', 'datecompleted', 'important']
+    if sort_by in valid_sort_fields:
+        if sort_order == 'asc':
+            tasks = tasks.order_by(sort_by)
+        else:
+            tasks = tasks.order_by(f'-{sort_by}')
+    else:
+        # Ordenamiento por defecto
+        tasks = tasks.order_by('-created')
+    
+    return render(request, 'tasks_details.html', {
+        'tasks': tasks,
+        'filter_status': filter_status,
+        'filter_important': filter_important,
+        'filter_date_from': filter_date_from,
+        'filter_date_to': filter_date_to,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+    })

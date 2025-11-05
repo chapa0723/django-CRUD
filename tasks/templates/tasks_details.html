@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+  /* Estilos para modo oscuro */
+  body.dark-mode {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+  }
+  
+  body.dark-mode #mainContainer {
+    background-color: #121212;
+    color: #e0e0e0;
+  }
+  
+  body.dark-mode .card {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+    border-color: #404040 !important;
+  }
+  
+  body.dark-mode .table {
+    color: #e0e0e0 !important;
+  }
+  
+  body.dark-mode .table thead th {
+    background-color: #1a1a1a !important;
+    color: #e0e0e0 !important;
+    border-color: #404040 !important;
+  }
+  
+  body.dark-mode .table tbody td {
+    border-color: #404040 !important;
+  }
+  
+  body.dark-mode .table tbody tr:hover {
+    background-color: #2d2d2d !important;
+  }
+  
+  body.dark-mode .form-control,
+  body.dark-mode .form-select {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+    border-color: #404040 !important;
+  }
+  
+  body.dark-mode .btn-outline-primary {
+    border-color: #4a9eff;
+    color: #4a9eff;
+  }
+  
+  body.dark-mode .btn-outline-primary:hover {
+    background-color: #4a9eff;
+    border-color: #4a9eff;
+    color: #fff;
+  }
+  
+  body.dark-mode h1 {
+    color: #e0e0e0 !important;
+  }
+  
+  body.dark-mode .text-muted {
+    color: #b0b0b0 !important;
+  }
+  
+  /* Estilos para la tabla ordenable */
+  .sortable-header {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 25px !important;
+  }
+  
+  .sortable-header:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  body.dark-mode .sortable-header:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+  }
+  
+  .sortable-header::after {
+    content: '↕';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.5;
+    font-size: 0.8em;
+  }
+  
+  .sortable-header.sort-asc::after {
+    content: '↑';
+    opacity: 1;
+  }
+  
+  .sortable-header.sort-desc::after {
+    content: '↓';
+    opacity: 1;
+  }
+  
+  /* Estilos para filtros laterales */
+  .filters-sidebar {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+  }
+  
+  body.dark-mode .filters-sidebar {
+    background-color: #2d2d2d !important;
+    border: 1px solid #404040;
+  }
+  
+  .table-responsive {
+    max-height: calc(100vh - 200px);
+    overflow-y: auto;
+  }
+  
+  .check-icon {
+    color: #28a745;
+    font-size: 1.2em;
+  }
+  
+  .status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+  }
+</style>
+
+<div class="container mt-4" id="mainContainer">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <h1 class="fw-bold text-primary">
+      <i class="bi bi-list-check me-2"></i> Detalles de Tareas
+    </h1>
+    <div class="d-flex gap-2">
+      <a href="{% url 'tasks' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Tabla principal -->
+    <div class="col-lg-9">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th class="sortable-header {% if sort_by == 'title' %}sort-{{ sort_order }}{% endif %}" 
+                      data-sort="title" data-order="{% if sort_by == 'title' and sort_order == 'desc' %}asc{% else %}desc{% endif %}">
+                    Nombre
+                  </th>
+                  <th class="sortable-header {% if sort_by == 'user__username' %}sort-{{ sort_order }}{% endif %}" 
+                      data-sort="user__username" data-order="{% if sort_by == 'user__username' and sort_order == 'desc' %}asc{% else %}desc{% endif %}">
+                    Usuario
+                  </th>
+                  <th class="sortable-header {% if sort_by == 'created' %}sort-{{ sort_order }}{% endif %}" 
+                      data-sort="created" data-order="{% if sort_by == 'created' and sort_order == 'desc' %}asc{% else %}desc{% endif %}">
+                    Fecha de Creación
+                  </th>
+                  <th class="sortable-header {% if sort_by == 'datecompleted' %}sort-{{ sort_order }}{% endif %}" 
+                      data-sort="datecompleted" data-order="{% if sort_by == 'datecompleted' and sort_order == 'desc' %}asc{% else %}desc{% endif %}">
+                    Status
+                  </th>
+                  <th class="sortable-header {% if sort_by == 'datecompleted' %}sort-{{ sort_order }}{% endif %}" 
+                      data-sort="datecompleted" data-order="{% if sort_by == 'datecompleted' and sort_order == 'desc' %}asc{% else %}desc{% endif %}">
+                    Cerrado
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {% if tasks %}
+                  {% for task in tasks %}
+                  <tr>
+                    <td>
+                      <a href="{% url 'task_detail' task.id %}" class="text-decoration-none">
+                        {% if task.important %}
+                          <i class="bi bi-star-fill text-warning me-1"></i>
+                        {% endif %}
+                        <strong>{{ task.title }}</strong>
+                      </a>
+                    </td>
+                    <td>{{ task.user.username }}</td>
+                    <td>{{ task.created|date:"d/m/Y H:i" }}</td>
+                    <td>
+                      {% if task.datecompleted %}
+                        <span class="status-badge bg-success text-white">Completada</span>
+                      {% else %}
+                        <span class="status-badge bg-warning text-dark">Pendiente</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-center">
+                      {% if task.datecompleted %}
+                        <i class="bi bi-check-circle-fill check-icon"></i>
+                      {% else %}
+                        <i class="bi bi-x-circle text-muted"></i>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                {% else %}
+                  <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                      <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                      No hay tareas disponibles.
+                    </td>
+                  </tr>
+                {% endif %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel de filtros lateral -->
+    <div class="col-lg-3">
+      <div class="filters-sidebar">
+        <h5 class="mb-3">
+          <i class="bi bi-funnel me-2"></i> Filtros
+        </h5>
+        
+        <form method="get" id="filterForm">
+          <!-- Filtro por Status -->
+          <div class="mb-3">
+            <label for="status" class="form-label">Status</label>
+            <select class="form-select" id="status" name="status">
+              <option value="">Todos</option>
+              <option value="pending" {% if filter_status == 'pending' %}selected{% endif %}>Pendiente</option>
+              <option value="completed" {% if filter_status == 'completed' %}selected{% endif %}>Completada</option>
+            </select>
+          </div>
+
+          <!-- Filtro por Importante -->
+          <div class="mb-3">
+            <label for="important" class="form-label">Importante</label>
+            <select class="form-select" id="important" name="important">
+              <option value="">Todos</option>
+              <option value="yes" {% if filter_important == 'yes' %}selected{% endif %}>Sí</option>
+              <option value="no" {% if filter_important == 'no' %}selected{% endif %}>No</option>
+            </select>
+          </div>
+
+          <!-- Filtro por Fecha -->
+          <div class="mb-3">
+            <label for="date_from" class="form-label">Fecha Desde</label>
+            <input type="date" class="form-control" id="date_from" name="date_from" value="{{ filter_date_from }}">
+          </div>
+
+          <div class="mb-3">
+            <label for="date_to" class="form-label">Fecha Hasta</label>
+            <input type="date" class="form-control" id="date_to" name="date_to" value="{{ filter_date_to }}">
+          </div>
+
+          <!-- Mantener parámetros de ordenamiento -->
+          <input type="hidden" name="sort" id="sortField" value="{{ sort_by }}">
+          <input type="hidden" name="order" id="sortOrder" value="{{ sort_order }}">
+
+          <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-search me-1"></i> Aplicar Filtros
+            </button>
+            <a href="{% url 'tasks_details' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-circle me-1"></i> Limpiar
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Funcionalidad para ordenamiento de columnas
+  document.addEventListener('DOMContentLoaded', function() {
+    const sortableHeaders = document.querySelectorAll('.sortable-header');
+    
+    sortableHeaders.forEach(header => {
+      header.addEventListener('click', function() {
+        const sortField = this.getAttribute('data-sort');
+        const sortOrder = this.getAttribute('data-order');
+        
+        // Actualizar los campos ocultos del formulario
+        document.getElementById('sortField').value = sortField;
+        document.getElementById('sortOrder').value = sortOrder;
+        
+        // Obtener todos los parámetros de filtro actuales
+        const form = document.getElementById('filterForm');
+        const formData = new FormData(form);
+        const params = new URLSearchParams();
+        
+        // Agregar todos los parámetros del formulario
+        for (const [key, value] of formData.entries()) {
+          if (value) {
+            params.append(key, value);
+          }
+        }
+        
+        // Redirigir con los nuevos parámetros
+        window.location.href = '{% url "tasks_details" %}?' + params.toString();
+      });
+    });
+  });
+
+  // Funcionalidad para cambiar el tema (compatibilidad con el tema global)
+  (function() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark') {
+      document.body.classList.add('dark-mode');
+    }
+  })();
+</script>
+
+{% endblock %}
+
