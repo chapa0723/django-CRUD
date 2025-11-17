@@ -40,6 +40,10 @@ urlpatterns = [
     path('reports/by_user/', reports.report_tasks_by_user, name='report_tasks_by_user'),
     path('reports/by_importance/', reports.report_tasks_by_importance, name='report_tasks_by_importance'),
     path('reports/old_pending/', reports.report_old_pending_tasks, name='report_old_pending_tasks'),
+    path('tasks_created/', reports.report_all_tasks, name='report_all_tasks'),
+    path('completed/', reports.report_completed_tasks, name='report_completed_tasks'),
+    path('pending/', reports.report_pending_tasks, name='report_pending_tasks'),
+    path('important/', reports.report_important_tasks, name='report_important_tasks'),
     
     # URLs para CAPTCHA
     path('captcha/', include('captcha.urls')),

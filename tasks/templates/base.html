@@ -40,6 +40,26 @@
       .bg-custom-orange {
     background-color: #e09c1c !important; 
   }
+      .btn-outline-custom-orange {
+        /* Color del texto y del borde (estado normal) */
+        --bs-btn-color: #e09c1c;
+        --bs-btn-border-color: #e09c1c;
+
+        /* Color del fondo en hover/active */
+        --bs-btn-hover-bg: #e09c1c;
+        --bs-btn-active-bg: #e09c1c;
+      
+        /* Color del "brillo" (shadow) al hacer focus */
+        /* Son los valores RGB de #FFA500 -> 255, 165, 0 */
+        --bs-btn-focus-shadow-rgb: 255, 165, 0;
+
+        /* Bootstrap se encarga del resto, como poner el 
+        texto en blanco automáticamente durante el hover.
+        */
+      }
+      .text-custom-orange {
+        color: #e09c1c !important;
+      }
     </style>
     
     <script>
