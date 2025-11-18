@@ -14,10 +14,10 @@
             color: #333;
         }
         h1 {
-            color: #0d6efd;
+            color: #000000;
             font-size: 18pt;
             margin-bottom: 20px;
-            border-bottom: 2px solid #0d6efd;
+            border-bottom: 2px solid #000000;
             padding-bottom: 10px;
         }
         .info-section {
@@ -38,11 +38,11 @@
             font-size: 9pt;
         }
         th {
-            background-color: #0d6efd;
+            background-color: #1d4c92;
             color: white;
             padding: 8px;
             text-align: left;
-            border: 1px solid #0d6efd;
+            border: 1px solid #1d4c92;
         }
         td {
             padding: 6px;
@@ -69,9 +69,38 @@
             color: #666;
             text-align: center;
         }
+        .pdf-fixed-header {
+            position: fixed; /* Esto hace que se repita en cada página */
+            top: 0;
+            width: 100%;
+            height: 2.5cm; /* Define la altura que ocupará */
+            padding: 0.5cm 2cm 0.5cm 2cm; /* Ajustamos el padding para coincidir con el margen @page */
+            border-bottom: 1px solid #ddd;
+            background-color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .pdf-logo {
+            max-height: 0.5cm; /* Tamaño máximo del logo */
+            width: auto;
+        }
     </style>
 </head>
 <body>
+
+    {% load static %}
+    <div class="pdf-fixed-header">
+        <div>
+            <img src="{% static 'tasks/images/logo-st.png' %}" alt="TaskAPP Logo" class="pdf-logo"/>
+        </div>
+
+        <div style="text-align: right;">
+            <p style="font-size: 12pt; font-weight: bold; color: #000000; margin: 0;">
+                Tareas APP - Reportes Oficiales
+            </p>
+        </div>
+    </div>
     <h1>{{ report_title }}</h1>
     
     <div class="info-section">
@@ -89,40 +118,29 @@
     <table>
         <thead>
             <tr>
-                <th>Nombre</th>
-                <th>Fecha de Creación</th>
-                
-                {% if report_type == 'all_tasks' or report_type == 'important_pending' %}
-                <th>Status</th>
-                {% endif %}
-                
                 {% if report_type == 'completed' or report_type == 'all_tasks' %}
-                <th>Fecha Cierre</th>
+                <th style="background-color: #0d6efd; color: white; padding: 8px; text-align: left;">Fecha Cierre</th>
                 {% endif %}
-                
+
+                <th style="background-color: #0d6efd; color: white; padding: 8px; text-align: left;">Fecha de Creación</th>
+
+                <th style="background-color: #0d6efd; color: white; padding: 8px; text-align: left;">Nombre</th>
+
+                <th style="background-color: #0d6efd; color: white; padding: 8px; text-align: left;">Usuario Asignado</th>
+
+                {% if report_type == 'all_tasks' or report_type == 'important_pending' %}
+                <th style="background-color: #0d6efd; color: white; padding: 8px; text-align: left;">Status</th>
+                {% endif %}
+
                 {% if report_type != 'completed' %}
-                <th>Cerrado</th>
+                <th style="background-color: #0d6efd; color: white; padding: 8px; text-align: center;">Cerrado</th>
                 {% endif %}
             </tr>
         </thead>
+        
         <tbody>
             {% for task in tasks %}
             <tr>
-                <td>
-                    {% if task.important %}★ {% endif %}<strong>{{ task.title }}</strong>
-                </td>
-                <td>{{ task.created|date:"d/m/Y H:i" }}</td>
-                
-                {% if report_type == 'all_tasks' or report_type == 'important_pending' %}
-                <td>
-                    {% if task.datecompleted %}
-                        <span class="status-badge status-completed">Completada</span>
-                    {% else %}
-                        <span class="status-badge status-pending">Pendiente</span>
-                    {% endif %}
-                </td>
-                {% endif %}
-
                 {% if report_type == 'completed' or report_type == 'all_tasks' %}
                 <td>
                     {% if task.datecompleted %}
@@ -132,7 +150,25 @@
                     {% endif %}
                 </td>
                 {% endif %}
-                
+            
+                <td>{{ task.created|date:"d/m/Y H:i" }}</td>
+
+                <td>
+                    {% if task.important %}★ {% endif %}<strong>{{ task.title }}</strong>
+                </td>
+
+                <td>{{ task.user.username }}</td>
+
+                {% if report_type == 'all_tasks' or report_type == 'important_pending' %}
+                <td>
+                    {% if task.datecompleted %}
+                        <span class="status-badge status-completed">Completada</span>
+                    {% else %}
+                        <span class="status-badge status-pending">Pendiente</span>
+                    {% endif %}
+                </td>
+                {% endif %}
+            
                 {% if report_type != 'completed' %}
                 <td style="text-align: center;">
                     {% if task.datecompleted %}
