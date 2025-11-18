@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Detalles de Tareas - TaskAPP</title>
+    <title>Reporte PDF - TaskAPP</title>
     <style>
         @page {
             size: A4;
@@ -25,6 +25,7 @@
             padding: 10px;
             background-color: #f8f9fa;
             border-radius: 5px;
+            border: 1px solid #ddd; /* Agregado para consistencia */
         }
         .info-section p {
             margin: 5px 0;
@@ -56,21 +57,10 @@
             font-size: 8pt;
             font-weight: bold;
         }
-        .status-completed {
-            background-color: #28a745;
-            color: white;
-        }
-        .status-pending {
-            background-color: #ffc107;
-            color: #000;
-        }
-        .check-icon {
-            color: #28a745;
-            font-weight: bold;
-        }
-        .no-check {
-            color: #999;
-        }
+        .status-completed { background-color: #28a745; color: white; }
+        .status-pending { background-color: #ffc107; color: black; }
+        .check-icon { color: #28a745; font-weight: bold; }
+        .no-check { color: #999; }
         .footer {
             margin-top: 30px;
             padding-top: 10px;
@@ -79,38 +69,19 @@
             color: #666;
             text-align: center;
         }
-        .important-star {
-            color: #ffc107;
-        }
     </style>
 </head>
 <body>
-    <h1>Detalles de Tareas - TaskAPP</h1>
+    <h1>{{ report_title }}</h1>
     
     <div class="info-section">
         <p><strong>Usuario:</strong> {{ user.username }}</p>
         <p><strong>Fecha de generación:</strong> {% now "d/m/Y H:i" %}</p>
-        {% if filter_status %}
-        <p><strong>Filtro Status:</strong> 
-            {% if filter_status == 'completed' %}Completadas
-            {% elif filter_status == 'pending' %}Pendientes
+        <p><strong>Filtro Aplicado:</strong> 
+            {% if period_days == 0 %}Histórico Completo
+            {% else %}Últimos {{ period_days }} días
             {% endif %}
         </p>
-        {% endif %}
-        {% if filter_important %}
-        <p><strong>Filtro Importante:</strong> 
-            {% if filter_important == 'yes' %}Sí
-            {% elif filter_important == 'no' %}No
-            {% endif %}
-        </p>
-        {% endif %}
-        {% if filter_date_from or filter_date_to %}
-        <p><strong>Rango de fechas:</strong> 
-            {% if filter_date_from %}{{ filter_date_from }}{% endif %}
-            {% if filter_date_from and filter_date_to %} - {% endif %}
-            {% if filter_date_to %}{{ filter_date_to }}{% endif %}
-        </p>
-        {% endif %}
         <p><strong>Total de tareas:</strong> {{ tasks.count }}</p>
     </div>
     
@@ -119,10 +90,19 @@
         <thead>
             <tr>
                 <th>Nombre</th>
-                <th>Usuario</th>
                 <th>Fecha de Creación</th>
+                
+                {% if report_type == 'all_tasks' or report_type == 'important_pending' %}
                 <th>Status</th>
+                {% endif %}
+                
+                {% if report_type == 'completed' or report_type == 'all_tasks' %}
+                <th>Fecha Cierre</th>
+                {% endif %}
+                
+                {% if report_type != 'completed' %}
                 <th>Cerrado</th>
+                {% endif %}
             </tr>
         </thead>
         <tbody>
@@ -131,8 +111,9 @@
                 <td>
                     {% if task.important %}★ {% endif %}<strong>{{ task.title }}</strong>
                 </td>
-                <td>{{ task.user.username }}</td>
                 <td>{{ task.created|date:"d/m/Y H:i" }}</td>
+                
+                {% if report_type == 'all_tasks' or report_type == 'important_pending' %}
                 <td>
                     {% if task.datecompleted %}
                         <span class="status-badge status-completed">Completada</span>
@@ -140,24 +121,37 @@
                         <span class="status-badge status-pending">Pendiente</span>
                     {% endif %}
                 </td>
+                {% endif %}
+
+                {% if report_type == 'completed' or report_type == 'all_tasks' %}
                 <td>
+                    {% if task.datecompleted %}
+                        {{ task.datecompleted|date:"d/m/Y H:i" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                {% endif %}
+                
+                {% if report_type != 'completed' %}
+                <td style="text-align: center;">
                     {% if task.datecompleted %}
                         <span class="check-icon">✓</span>
                     {% else %}
                         <span class="no-check">✗</span>
                     {% endif %}
                 </td>
+                {% endif %}
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-    <p>No hay tareas disponibles con los filtros seleccionados.</p>
+    <p style="margin-top:20px; color: #666;">No hay tareas disponibles con los filtros seleccionados.</p>
     {% endif %}
     
     <div class="footer">
-        <p>Generado por TaskAPP - {{ "now"|date:"d/m/Y H:i" }}</p>
+        <p>Generado por TaskAPP - {% now "d/m/Y H:i" %}</p>
     </div>
 </body>
 </html>
-

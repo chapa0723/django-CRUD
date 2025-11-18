@@ -5,6 +5,9 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db.models import Count, Q, Avg
+from django.http import HttpResponse
+from django.template.loader import get_template
+from xhtml2pdf import pisa
 from datetime import timedelta
 from .models import Task
 from .permissions import get_user_accessible_tasks
@@ -358,3 +361,89 @@ def report_old_pending_tasks(request):
         'report_type': 'old_pending'
     })
 
+@login_required
+def export_pdf_report(request):
+    """
+    Genera un PDF utilizando xhtml2pdf.
+    Recibe parámetros GET: report_type y days.
+    """
+    # 1. Obtener parámetros de la URL
+    report_type = request.GET.get('report_type', 'all_tasks')
+    try:
+        days = int(request.GET.get('days', 0))
+    except ValueError:
+        days = 0
+
+    # 2. Lógica de Filtrado (Idéntica a tus vistas web)
+    tasks = get_user_accessible_tasks(request.user)
+    
+    # Filtro por días (Fecha base)
+    start_date = None
+    if days > 0:
+        start_date = timezone.now() - timedelta(days=days)
+
+    report_title = "Reporte de Tareas"
+
+    # Aplicar filtros según el tipo de reporte
+    if report_type == 'completed':
+        tasks = tasks.filter(datecompleted__isnull=False)
+        if start_date: 
+            tasks = tasks.filter(datecompleted__gte=start_date)
+        report_title = "Reporte de Tareas Completadas"
+        tasks = tasks.order_by('-datecompleted')
+
+    elif report_type == 'pending':
+        tasks = tasks.filter(datecompleted__isnull=True)
+        if start_date: 
+            tasks = tasks.filter(created__gte=start_date)
+        report_title = "Reporte de Tareas Pendientes"
+        tasks = tasks.order_by('created')
+
+    elif report_type == 'important': # o 'important_pending'
+        tasks = tasks.filter(important=True, datecompleted__isnull=True)
+        if start_date: 
+            tasks = tasks.filter(created__gte=start_date)
+        report_title = "Reporte de Tareas Importantes (Pendientes)"
+        tasks = tasks.order_by('-created')
+
+    else: # 'all_tasks' por defecto
+        if start_date: 
+            tasks = tasks.filter(created__gte=start_date)
+        report_title = "Reporte de Total de Tareas"
+        tasks = tasks.order_by('-created')
+
+    # 3. Preparar el Contexto
+    context = {
+        'tasks': tasks,
+        'user': request.user,
+        'report_title': report_title,
+        'period_days': days,
+        'report_type': report_type,
+        # Variables extra para el template si las necesitas
+        'filter_date_from': start_date if days > 0 else None,
+    }
+
+    # 4. Generar el PDF con xhtml2pdf
+    template_path = 'report_pdf_print.html'
+    response = HttpResponse(content_type='application/pdf')
+    
+    # Si quieres que se descargue directamente, descomenta la siguiente línea:
+    response['Content-Disposition'] = f'attachment; filename="reporte_{report_type}.pdf"'
+    
+    # Si quieres que se abra en el navegador (preview), usa esta:
+    response['Content-Disposition'] = f'inline; filename="reporte_{report_type}.pdf"'
+
+    # Cargar el template y renderizar con el contexto
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # Crear el PDF
+    pisa_status = pisa.CreatePDF(
+       html, dest=response
+    )
+
+    # Manejo de errores
+    if pisa_status.err:
+       return HttpResponse('Ocurrió un error al generar el PDF <pre>' + html + '</pre>')
+    
+    return response
