@@ -7,10 +7,14 @@ from django.utils import timezone
 from django.db.models import Count, Q, Avg
 from django.http import HttpResponse
 from django.template.loader import get_template
+from django.conf import settings
+from django.contrib.staticfiles import finders
+from django.utils.text import slugify
 from xhtml2pdf import pisa
 from datetime import timedelta
 from .models import Task
 from .permissions import get_user_accessible_tasks
+import os
 
 @login_required
 def report_all_tasks(request):
@@ -157,7 +161,7 @@ def report_important_tasks(request):
     return render(request, 'report_tasks_list.html', {
         'context': context,
         'report_title': report_title,
-        'report_type': 'important_pending'
+        'report_type': 'important'
     })
 
 @login_required
@@ -383,7 +387,11 @@ def export_pdf_report(request):
         start_date = timezone.now() - timedelta(days=days)
 
     report_title = "Reporte de Tareas"
-
+    
+    # --- Variables de filtro para el template PDF ---
+    filter_status = None
+    filter_important = None
+    
     # Aplicar filtros según el tipo de reporte
     if report_type == 'completed':
         tasks = tasks.filter(datecompleted__isnull=False)
@@ -391,47 +399,62 @@ def export_pdf_report(request):
             tasks = tasks.filter(datecompleted__gte=start_date)
         report_title = "Reporte de Tareas Completadas"
         tasks = tasks.order_by('-datecompleted')
-
+        filter_status = 'completed' # <--- Setear variable
+        
     elif report_type == 'pending':
         tasks = tasks.filter(datecompleted__isnull=True)
         if start_date: 
             tasks = tasks.filter(created__gte=start_date)
         report_title = "Reporte de Tareas Pendientes"
         tasks = tasks.order_by('created')
+        filter_status = 'pending' # <--- Setear variable
 
-    elif report_type == 'important': # o 'important_pending'
+    elif report_type == 'important': # Es importante Y pendiente
         tasks = tasks.filter(important=True, datecompleted__isnull=True)
         if start_date: 
             tasks = tasks.filter(created__gte=start_date)
         report_title = "Reporte de Tareas Importantes (Pendientes)"
         tasks = tasks.order_by('-created')
-
+        filter_status = 'pending' # <--- Sigue siendo pendiente
+        filter_important = 'yes' # <--- Setear variable
+        
     else: # 'all_tasks' por defecto
         if start_date: 
             tasks = tasks.filter(created__gte=start_date)
         report_title = "Reporte de Total de Tareas"
         tasks = tasks.order_by('-created')
 
-    # 3. Preparar el Contexto
+# 3. CONSTRUCCIÓN DEL NOMBRE DEL ARCHIVO (¡NUEVO!)
+    now = timezone.now()
+    date_str = now.strftime("%Y%m%d_%H%M")
+    
+    # Limpia el título (ej: "Reporte de Tareas Pendientes" -> "reporte-de-tareas-pendientes")
+    title_slug = slugify(report_title)
+    
+    # Nombre final del archivo:
+    filename = f"{title_slug}_{date_str}.pdf"
+    
+    # 4. PREPARAR EL CONTEXTO FINAL (usando los nombres que el template PDF espera)
     context = {
         'tasks': tasks,
         'user': request.user,
         'report_title': report_title,
-        'period_days': days,
-        'report_type': report_type,
-        # Variables extra para el template si las necesitas
-        'filter_date_from': start_date if days > 0 else None,
+        
+        # Variables específicas que la plantilla PDF espera:
+        'filter_status': filter_status,
+        'filter_important': filter_important,
+        
+        # El template PDF espera estas variables, aunque no tengamos el filtro de fecha completo
+        'filter_date_from': start_date.strftime("%d/%m/%Y") if start_date else None,
+        'filter_date_to': timezone.now().strftime("%d/%m/%Y"), # Asume que el rango es hasta hoy
     }
 
-    # 4. Generar el PDF con xhtml2pdf
+    # 5. Generar el PDF con xhtml2pdf
     template_path = 'report_pdf_print.html'
     response = HttpResponse(content_type='application/pdf')
     
-    # Si quieres que se descargue directamente, descomenta la siguiente línea:
-    response['Content-Disposition'] = f'attachment; filename="reporte_{report_type}.pdf"'
-    
-    # Si quieres que se abra en el navegador (preview), usa esta:
-    response['Content-Disposition'] = f'inline; filename="reporte_{report_type}.pdf"'
+    # Configuramos para que se descargue el archivo
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
     # Cargar el template y renderizar con el contexto
     template = get_template(template_path)
@@ -439,11 +462,32 @@ def export_pdf_report(request):
 
     # Crear el PDF
     pisa_status = pisa.CreatePDF(
-       html, dest=response
-    )
+    html, 
+    dest=response, 
+    link_callback=link_callback
+)
 
-    # Manejo de errores
     if pisa_status.err:
-       return HttpResponse('Ocurrió un error al generar el PDF <pre>' + html + '</pre>')
+        return HttpResponse('Ocurrió un error al generar el PDF <pre>' + html + '</pre>')
     
     return response
+
+# ESTA FUNCIÓN LE DICE A xhtml2pdf DÓNDE ENCONTRAR LOS ARCHIVOS
+def link_callback(uri, rel):
+    """
+    Convierte las rutas de recursos locales (como static y media)
+    a rutas absolutas del sistema de archivos.
+    """
+    # 1. Rutas estáticas (CSS, JS, Imágenes del proyecto)
+    if uri.startswith(settings.STATIC_URL):
+        path = os.path.join(settings.STATIC_ROOT, uri.replace(settings.STATIC_URL, ""))
+        # Fallback para desarrollo (si STATIC_ROOT no está configurado o no se ha hecho collectstatic)
+        if not os.path.isfile(path):
+            path = finders.find(uri.replace(settings.STATIC_URL, ""))
+        return path
+    
+    # 2. Rutas de Media (Archivos subidos por el usuario)
+    if uri.startswith(settings.MEDIA_URL):
+        return os.path.join(settings.MEDIA_ROOT, uri.replace(settings.MEDIA_URL, ""))
+
+    return uri
