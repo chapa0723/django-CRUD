@@ -108,7 +108,7 @@
 
 <div class="container mt-4" id="mainContainer">
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
-    <h1 class="fw-bold text-primary">
+    <h1 class="fw-bold text-black">
       <i class="bi bi-check2-circle me-2"></i> Mis Tareas
     </h1>
     <div class="d-flex gap-2">
@@ -127,7 +127,7 @@
         <i class="bi bi-moon-fill" id="themeIcon"></i>
       </button>
       
-      <a href="{% url 'tasks_details' %}" class="btn btn-info">
+      <a href="{% url 'tasks_details' %}" class="btn btn-outline-primary">
         <i class="bi bi-list-check"></i> Detalles
       </a>
       <a href="{% url 'create_task' %}" class="btn btn-success">
@@ -144,7 +144,7 @@
         <h5 class="card-title">
           <a href="{% url 'task_detail' task.id %}" class="text-decoration-none text-dark">
             {% if task.important %}
-            <i class="bi bi-star-fill text-warning"></i>
+            <i class="bi bi-star-fill text-danger"></i>
             <strong>{{ task.title }}</strong>
             {% else %}
             {{ task.title }}

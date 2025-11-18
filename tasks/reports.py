@@ -9,6 +9,153 @@ from datetime import timedelta
 from .models import Task
 from .permissions import get_user_accessible_tasks
 
+@login_required
+def report_all_tasks(request):
+    """
+    Reporte de TODAS las tareas, con filtro opcional de días
+    por fecha de CREACIÓN.
+    """
+    try:
+        # Si 'days' es 0 o no se provee, no se aplica filtro de fecha
+        days = int(request.GET.get('days', 0))
+    except ValueError:
+        days = 0
+            
+    # 1. Obtener todas las tareas accesibles
+    tasks = get_user_accessible_tasks(request.user)
+    report_title = "Reporte de Todas las Tareas"
+
+    # 2. Aplicar filtro de fecha si 'days' es mayor a 0
+    if days > 0:
+        start_date = timezone.now() - timedelta(days=days)
+        tasks = tasks.filter(created__gte=start_date)
+        report_title = f"Tareas Creadas en los Últimos {days} Días"
+    
+    context = {
+        'tasks': tasks.order_by('-created'),
+        'total': tasks.count(),
+        'period_days': days,
+    }
+    
+    return render(request, 'report_tasks_list.html', {
+        'context': context,
+        'report_title': report_title,
+        'report_type': 'all_tasks'
+    })
+
+
+@login_required
+def report_completed_tasks(request):
+    """
+    Reporte de tareas COMPLETADAS, con filtro opcional de días
+    por fecha de COMPLETACIÓN.
+    """
+    try:
+        days = int(request.GET.get('days', 0))
+    except ValueError:
+        days = 0
+            
+    tasks = get_user_accessible_tasks(request.user)
+    
+    # 1. Filtro base: Tareas completadas
+    tasks = tasks.filter(datecompleted__isnull=False)
+    report_title = "Reporte de Tareas Completadas"
+
+    # 2. Aplicar filtro de fecha si 'days' es mayor a 0
+    if days > 0:
+        start_date = timezone.now() - timedelta(days=days)
+        # Filtramos por la fecha en que se completaron
+        tasks = tasks.filter(datecompleted__gte=start_date)
+        report_title = f"Tareas Completadas en los Últimos {days} Días"
+    
+    context = {
+        'tasks': tasks.order_by('-datecompleted'),
+        'total': tasks.count(),
+        'period_days': days,
+    }
+    
+    return render(request, 'report_tasks_list.html', {
+        'context': context,
+        'report_title': report_title,
+        'report_type': 'completed'
+    })
+
+
+@login_required
+def report_pending_tasks(request):
+    """
+    Reporte de tareas PENDIENTES, con filtro opcional de días
+    por fecha de CREACIÓN.
+    """
+    try:
+        days = int(request.GET.get('days', 0))
+    except ValueError:
+        days = 0
+            
+    tasks = get_user_accessible_tasks(request.user)
+    
+    # 1. Filtro base: Tareas pendientes
+    tasks = tasks.filter(datecompleted__isnull=True)
+    report_title = "Reporte de Tareas Pendientes"
+
+    # 2. Aplicar filtro de fecha si 'days' es mayor a 0
+    if days > 0:
+        start_date = timezone.now() - timedelta(days=days)
+        # Filtramos por la fecha en que se crearon
+        tasks = tasks.filter(created__gte=start_date)
+        report_title = f"Tareas Pendientes (Creadas en los últimos {days} días)"
+    
+    context = {
+        'tasks': tasks.order_by('-created'),
+        'total': tasks.count(),
+        'period_days': days,
+    }
+    
+    return render(request, 'report_tasks_list.html', {
+        'context': context,
+        'report_title': report_title,
+        'report_type': 'pending'
+    })
+
+
+@login_required
+def report_important_tasks(request):
+    """
+    Reporte de tareas IMPORTANTES y PENDIENTES, con filtro
+    opcional de días por fecha de CREACIÓN.
+    """
+    try:
+        days = int(request.GET.get('days', 0))
+    except ValueError:
+        days = 0
+            
+    tasks = get_user_accessible_tasks(request.user)
+    
+    # 1. Filtro base: Tareas importantes Y pendientes
+    tasks = tasks.filter(
+        important=True,
+        datecompleted__isnull=True
+    )
+    report_title = "Reporte de Tareas Importantes (Pendientes)"
+
+    # 2. Aplicar filtro de fecha si 'days' es mayor a 0
+    if days > 0:
+        start_date = timezone.now() - timedelta(days=days)
+        # Filtramos por la fecha en que se crearon
+        tasks = tasks.filter(created__gte=start_date)
+        report_title = f"Tareas Importantes (Pendientes, creadas en los últimos {days} días)"
+    
+    context = {
+        'tasks': tasks.order_by('-created'),
+        'total': tasks.count(),
+        'period_days': days,
+    }
+    
+    return render(request, 'report_tasks_list.html', {
+        'context': context,
+        'report_title': report_title,
+        'report_type': 'important_pending'
+    })
 
 @login_required
 def task_reports(request):
