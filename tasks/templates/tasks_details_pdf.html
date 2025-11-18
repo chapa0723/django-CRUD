@@ -89,7 +89,7 @@
     
     <div class="info-section">
         <p><strong>Usuario:</strong> {{ user.username }}</p>
-        <p><strong>Fecha de generación:</strong> {{ "now"|date:"d/m/Y H:i" }}</p>
+        <p><strong>Fecha de generación:</strong> {% now "d/m/Y H:i" %}</p>
         {% if filter_status %}
         <p><strong>Filtro Status:</strong> 
             {% if filter_status == 'completed' %}Completadas
