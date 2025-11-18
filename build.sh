@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -o errexit
 # install dependencies
 pip install -r requirements.txt 
 # make migrations
