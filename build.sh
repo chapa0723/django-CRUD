@@ -2,6 +2,7 @@
 set -o errexit
 # install dependencies
 pip install -r requirements.txt 
+pip install psycopg2-binary
 # make migrations
 python manage.py makemigrations 
 python manage.py migrate 
