@@ -420,12 +420,33 @@ def tasks_details_pdf(request):
         return response
 
 
+# @login_required
+# def task_list(request):
+#     # 🚨 FIX DE VISIBILIDAD 🚨
+#     # Solo se muestran las tareas que el usuario tiene derecho a ver
+#     tasks = get_user_accessible_tasks(request.user).order_by('-created')
+    
+#     return render(request, 'tasks.html', {'tasks': tasks})
+
 @login_required
 def task_list(request):
-    # 🚨 FIX DE VISIBILIDAD 🚨
-    # Solo se muestran las tareas que el usuario tiene derecho a ver
-    tasks = get_user_accessible_tasks(request.user).order_by('-created')
+    order_param = request.GET.get('order', 'desc') 
     
+    # 🚨 CORRECCIÓN CRÍTICA: Normalizamos el parámetro de la URL 🚨
+    normalized_order = order_param.strip().lower() 
+    
+    if normalized_order == 'asc':
+        # Orden ascendente (ASC)
+        ordering_field = 'created'
+    else:
+        # Orden descendente (DESC) - Será el valor por defecto para cualquier otro valor
+        ordering_field = '-created' 
+
+    # 2. Aplicar el orden (Usamos la función que ya modificamos)
+    from .permissions import get_user_accessible_tasks
+    tasks = get_user_accessible_tasks(request.user, ordering_field) 
+    
+    # 3. Renderizar
     return render(request, 'tasks.html', {'tasks': tasks})
 
 

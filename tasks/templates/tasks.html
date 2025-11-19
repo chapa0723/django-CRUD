@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block content %}
+{% load task_filters %}
 
 <style>
   /* Estilos para modo oscuro */
@@ -121,6 +122,25 @@
           <i class="bi bi-list-ul"></i>
         </button>
       </div>
+
+      <!-- Dropwdown para Ordenamiento de las tareas -->
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-sort-down me-1"></i> Ordenar por Fecha
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <a class="dropdown-item" href="?order=desc">
+                    <i class="bi bi-sort-down-alt me-2"></i> Más Recientes Primero
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="?order=asc">
+                    <i class="bi bi-sort-up-alt me-2"></i> Más Antiguas Primero
+                </a>
+            </li>
+        </ul>
+    </div>
       
       <!-- Botón para cambiar tema -->
       <!-- <button type="button" id="themeToggle" class="btn btn-outline-secondary" title="Cambiar tema">
@@ -139,7 +159,7 @@
   {% if tasks %}
   <div id="tasksContainer" class="grid-view">
     {% for task in tasks %}
-{% load task_filters %}
+
 
 <div class="task-item card shadow-lg h-100 border-0">
   <div class="card-body">
@@ -177,11 +197,13 @@
 
       <div class="text-end">
         <small class="text-secondary d-block">
-          <i class="bi bi-calendar-event"></i>
+          
           {% if task.datecompleted %}
-            Completado: {{ task.datecompleted|date:"d/m/Y H:i" }}
+            <i class="bi bi-calendar-check me-1 text-success"></i>  Completado: {{ task.datecompleted|date:"d/m/Y H:i" }}
           {% else %}
-            <span class="badge bg-warning text-dark">Pendiente</span>
+            <span class="badge bg-warning small text-dark"><i class="bi bi-calendar-event"></i>
+              Creada: <br>{{ task.created|date:"d/m/Y H:i" }}
+            </span>
           {% endif %}
         </small>
       </div>
