@@ -3,6 +3,7 @@
 {% block content %}
 
 <div class="container mt-5">
+<<<<<<< HEAD
   <div class="card shadow-sm border-0">
     <div class="card-body">
       <h2 class="card-title text-primary fw-bold mb-3">
@@ -50,3 +51,110 @@
 </div>
 
 {% endblock %}
+=======
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            
+            <h2 class="card-title text-black fw-bold mb-3">
+                <i class="bi bi-journal-text me-2"></i>{{ task.title }}
+                {% if task.important %}
+                    <i class="bi bi-star-fill text-danger" title="Importante"></i>
+                {% endif %}
+            </h2>
+            
+            {% load task_filters %}
+            <p class="text-muted mb-2">
+                <strong><i class="bi bi-person-fill me-1"></i> Asignado a:</strong> 
+                {% if task.assigned_user %}
+                    {{ task.assigned_user.username }} 
+                    <span class="badge bg-primary">{{ task.assigned_user|get_user_role }}</span>
+                {% else %}
+                    <span class="badge bg-danger">Tarea No Asignada</span>
+                {% endif %}
+            </p>
+            <p class="text-muted mb-4">
+                <strong><i class="bi bi-calendar me-1"></i> Creada:</strong> {{ task.created|date:"d/m/Y H:i" }}
+            </p>
+            
+            {% if task.datecompleted %}
+                <div class="alert alert-success py-2">
+                    <i class="bi bi-check-circle-fill me-2"></i> Tarea Completada el {{ task.datecompleted|date:"d/m/Y" }}
+                </div>
+            {% else %}
+                <div class="alert alert-warning py-2 text-dark">
+                    <i class="bi bi-clock-fill me-2"></i> Estado: Pendiente
+                </div>
+            {% endif %}
+
+            {% if can_edit %}
+            <hr>
+            <h5 class="mb-3 text-secondary">Edición de Tarea:</h5>
+
+            <form method="POST" class="mb-4">
+                {% csrf_token %}
+
+                <div class="mb-3">
+                    <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">Título:</label>
+                    {{ form.title }}
+
+                    {% for error in form.title.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">Descripción:</label>
+                    {{ form.description }} 
+
+                    {% for error in form.description.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div style="display: none;">
+                    {{ form.datecompleted }} 
+                    {{ form.important }}
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Guardar Cambios
+                </button>
+
+            </form>
+
+            {% else %}
+                <hr>
+                <p><strong>Descripción:</strong></p>
+                <div class="alert alert-light">{{ task.description|linebreaksbr }}</div>
+            {% endif %}
+            <hr>
+            <div class="d-flex flex-wrap gap-2 justify-content-end">
+                
+
+              <a href="{% url 'tasks' %}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Volver a Mis Tareas
+                </a>
+                {% if can_edit and not task.datecompleted %}
+                    <form action="{% url 'complete_task' task.id %}" method="POST" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check2-circle me-1"></i> Marcar como Completada
+                        </button>
+                    </form>
+                {% endif %}
+
+                {% if request.user.is_superuser or is_admin %}
+                    <a href="{% url 'task_delete' task.id %}" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i> Eliminar
+                    </a>
+                {% endif %}
+
+                
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+>>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223

@@ -23,4 +23,16 @@ class TaskForm(forms.ModelForm):
             'important': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
             }),
+<<<<<<< HEAD
         }
+=======
+        }
+
+
+class TaskStatusOnlyForm(forms.ModelForm):
+    # Formulario limitado para el rol Ventas.
+    class Meta:
+        model = Task
+        fields = ['datecompleted', 'description', 'title']
+        
+>>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
