@@ -12,7 +12,7 @@ from .auth_forms import SignUpForm, SignInForm
 from .permissions import user_has_permission, get_user_accessible_tasks
 
 def signup(request):
-    return redirect('signin')
+    return render(request, 'signup_blocked.html')
 
 
 @login_required
