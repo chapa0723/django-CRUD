@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 set -o errexit
 
 # Verificar que estamos en render.com y no en un entorno de desarrollo
