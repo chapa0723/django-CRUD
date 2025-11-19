@@ -6,6 +6,8 @@ pip install -r requirements.txt
 # make migrations
 python manage.py makemigrations 
 python manage.py migrate 
+# recolectar archivos estáticos
+python manage.py collectstatic --noinput
 # definir credenciales de superusuario
 export DJANGO_SUPERUSER_USERNAME=david
 export DJANGO_SUPERUSER_EMAIL=david@david.com
