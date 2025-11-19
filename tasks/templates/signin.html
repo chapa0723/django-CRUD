@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 90vh;">
+  <div class="card shadow-lg border-0 p-4" style="width: 400px;">
+    <div class="card-body">
+      <h2 class="text-center fw-bold text-primary mb-4">
+        <i class="bi bi-person-circle me-2"></i> Iniciar Sesión
+      </h2>
+
+      {% if error %}
+      <div class="alert alert-danger" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>{{ error }}
+      </div>
+      {% endif %}
+
+      <form action="/signin/" method="POST" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label">{{ form.username.label }}</label>
+          {{ form.username }}
+          {% if form.username.errors %}
+            <div class="text-danger small">{{ form.username.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">{{ form.password.label }}</label>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <div class="text-danger small">{{ form.password.errors }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">CAPTCHA</label>
+          {{ form.captcha }}
+          {% if form.captcha.errors %}
+            <div class="text-danger small">{{ form.captcha.errors }}</div>
+          {% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        <button type="submit" class="btn btn-primary w-100">
+          <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar Sesión
+        </button>
+      </form>
+
+      <div class="text-center mt-3">
+        <small class="text-muted">¿No tenés cuenta?</small><br>
+        <a href="{% url 'signup' %}" class="text-decoration-none">Registrate aquí</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

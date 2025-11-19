@@ -1,0 +1,251 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<style>
+  /* Estilos para modo oscuro */
+  body.dark-mode {
+    background-color: #121212 !important;
+    color: #e0e0e0 !important;
+  }
+  
+  body.dark-mode #mainContainer {
+    background-color: #121212;
+    color: #e0e0e0;
+  }
+  
+  body.dark-mode .card {
+    background-color: #2d2d2d !important;
+    color: #e0e0e0 !important;
+    border-color: #404040 !important;
+  }
+  
+  body.dark-mode .card-title a {
+    color: #e0e0e0 !important;
+  }
+  
+  body.dark-mode .card-text {
+    color: #b0b0b0 !important;
+  }
+  
+  body.dark-mode .text-secondary {
+    color: #a0a0a0 !important;
+  }
+  
+  body.dark-mode .bg-warning {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+  }
+  
+  body.dark-mode h1 {
+    color: #e0e0e0 !important;
+  }
+  
+  body.dark-mode .text-muted {
+    color: #b0b0b0 !important;
+  }
+  
+  body.dark-mode .btn-outline-primary {
+    border-color: #4a9eff;
+    color: #4a9eff;
+  }
+  
+  body.dark-mode .btn-outline-primary:hover {
+    background-color: #4a9eff;
+    border-color: #4a9eff;
+    color: #fff;
+  }
+  
+  /* Vista de grid (tarjetas) - por defecto */
+  #tasksContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    transition: all 0.3s ease;
+  }
+  
+  /* Vista de lista */
+  #tasksContainer.list-view {
+    display: block;
+  }
+  
+  #tasksContainer.list-view .task-item {
+    display: block;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  #tasksContainer.list-view .card-body {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+  
+  #tasksContainer.list-view .card-title {
+    flex: 1;
+    margin: 0;
+  }
+  
+  #tasksContainer.list-view .card-text {
+    flex: 1;
+    margin: 0;
+    max-width: 400px;
+  }
+  
+  /* Responsive para móviles */
+  @media (max-width: 768px) {
+    #tasksContainer.list-view .card-body {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    
+    #tasksContainer.list-view .card-text {
+      max-width: 100%;
+    }
+  }
+</style>
+
+<div class="container mt-4" id="mainContainer">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <h1 class="fw-bold text-black">
+      <i class="bi bi-check2-circle me-2"></i> Mis Tareas
+    </h1>
+    <div class="d-flex gap-2">
+      <!-- Botón para cambiar vista -->
+      <div class="btn-group" role="group">
+        <button type="button" id="viewGridBtn" class="btn btn-outline-primary active" title="Vista de tarjetas">
+          <i class="bi bi-grid-3x3-gap"></i>
+        </button>
+        <button type="button" id="viewListBtn" class="btn btn-outline-primary" title="Vista de lista">
+          <i class="bi bi-list-ul"></i>
+        </button>
+      </div>
+      
+      <!-- Botón para cambiar tema -->
+      <button type="button" id="themeToggle" class="btn btn-outline-secondary" title="Cambiar tema">
+        <i class="bi bi-moon-fill" id="themeIcon"></i>
+      </button>
+      
+      <a href="{% url 'tasks_details' %}" class="btn btn-outline-primary">
+        <i class="bi bi-list-check"></i> Detalles
+      </a>
+      <a href="{% url 'create_task' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Nueva Tarea
+      </a>
+    </div>
+  </div>
+
+  {% if tasks %}
+  <div id="tasksContainer" class="grid-view">
+    {% for task in tasks %}
+    <div class="task-item card shadow-lg h-100 border-0">
+      <div class="card-body">
+        <h5 class="card-title">
+          <a href="{% url 'task_detail' task.id %}" class="text-decoration-none text-dark">
+            {% if task.important %}
+            <i class="bi bi-star-fill text-danger"></i>
+            <strong>{{ task.title }}</strong>
+            {% else %}
+            {{ task.title }}
+            {% endif %}
+          </a>
+        </h5>
+        <p class="card-text text-muted small mb-2">
+          {{ task.description|truncatewords:20 }}
+        </p>
+
+        <div class="d-flex justify-content-between align-items-center">
+          <small class="text-secondary">
+            <i class="bi bi-calendar-event"></i>
+            {% if task.datecompleted %}
+              {{ task.datecompleted|date:"d/m/Y H:i" }}
+            {% else %}
+              <span class="badge bg-warning text-dark">Pendiente</span>
+            {% endif %}
+          </small>
+          <a href="{% url 'task_detail' task.id %}" class="btn btn-outline-primary btn-sm">
+            Ver detalle
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center text-muted mt-5">
+    <i class="bi bi-inbox fs-1"></i>
+    <p class="mt-2">No hay tareas disponibles.</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  // Funcionalidad para cambiar el tema
+  (function() {
+    // Verificar preferencia guardada
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    const themeIcon = document.getElementById('themeIcon');
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+    
+    // Aplicar tema guardado
+    if (savedTheme === 'dark') {
+      body.classList.add('dark-mode');
+      themeIcon.className = 'bi bi-sun-fill';
+    }
+    
+    // Cambiar tema al hacer clic
+    if (themeToggle) {
+      themeToggle.addEventListener('click', function() {
+        body.classList.toggle('dark-mode');
+        
+        if (body.classList.contains('dark-mode')) {
+          localStorage.setItem('theme', 'dark');
+          themeIcon.className = 'bi bi-sun-fill';
+        } else {
+          localStorage.setItem('theme', 'light');
+          themeIcon.className = 'bi bi-moon-fill';
+        }
+      });
+    }
+  })();
+  
+  // Funcionalidad para cambiar la vista
+  (function() {
+    const viewGridBtn = document.getElementById('viewGridBtn');
+    const viewListBtn = document.getElementById('viewListBtn');
+    const tasksContainer = document.getElementById('tasksContainer');
+    
+    // Verificar preferencia guardada
+    const savedView = localStorage.getItem('viewMode') || 'grid';
+    
+    // Aplicar vista guardada
+    if (savedView === 'list') {
+      tasksContainer.classList.remove('grid-view');
+      tasksContainer.classList.add('list-view');
+      viewGridBtn.classList.remove('active');
+      viewListBtn.classList.add('active');
+    }
+    
+    // Cambiar a vista de grid (tarjetas)
+    viewGridBtn.addEventListener('click', function() {
+      tasksContainer.classList.remove('list-view');
+      tasksContainer.classList.add('grid-view');
+      viewGridBtn.classList.add('active');
+      viewListBtn.classList.remove('active');
+      localStorage.setItem('viewMode', 'grid');
+    });
+    
+    // Cambiar a vista de lista
+    viewListBtn.addEventListener('click', function() {
+      tasksContainer.classList.remove('grid-view');
+      tasksContainer.classList.add('list-view');
+      viewGridBtn.classList.remove('active');
+      viewListBtn.classList.add('active');
+      localStorage.setItem('viewMode', 'list');
+    });
+  })();
+</script>
+
+{% endblock %}

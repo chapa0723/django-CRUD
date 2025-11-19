@@ -1,0 +1,115 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+  <div class="container">
+    {% load static %}
+    <a class="navbar-brand fw-bold" href="/" >
+      <!-- <i class="bi bi-check2-circle me-2 text-success"></i> --> 
+      <img src="{% static 'tasks/images/logo-st.png' %}" alt="Logo de YacareSoft" width="34" height="34" class="d-inline-block align-text-top" style="position: relative; top: -3px; right: 3px"> TareasApp
+    </a>
+    <button
+      class="navbar-toggler"
+      type="button"
+      data-bs-toggle="collapse"
+      data-bs-target="#navbarNav"
+      aria-controls="navbarNav"
+      aria-expanded="false"
+      aria-label="Toggle navigation"
+    >
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto align-items-lg-center">
+        <li class="nav-item">
+          <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+            <i class="bi bi-house-door me-1"></i> Home
+          </a>
+        </li>
+
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a href="{% url 'tasks' %}" class="nav-link {% if request.path == '/tasks/' %}active{% endif %}">
+            <i class="bi bi-list-task me-1"></i> Tareas
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'tasks_completed' %}" class="nav-link {% if request.path == '/tasks_completed/' %}active{% endif %}">
+            <i class="bi bi-check2-all me-1"></i> Completadas
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'reports' %}" class="nav-link {% if '/reports/' in request.path %}active{% endif %}">
+            <i class="bi bi-graph-up me-1"></i> Reportes
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'create_task' %}" class="nav-link {% if request.path == '/create_task/' %}active{% endif %}">
+            <i class="bi bi-plus-circle me-1"></i> Nueva
+          </a>
+        </li>
+        <li class="nav-item">
+          <button type="button" id="globalThemeToggle" class="nav-link btn btn-link text-light" title="Cambiar tema">
+            <i class="bi bi-moon-fill" id="globalThemeIcon"></i>
+          </button>
+        </li>
+        <li class="nav-item dropdown">
+          <a
+            class="nav-link dropdown-toggle"
+            href="#"
+            id="navbarDropdown"
+            role="button"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i class="bi bi-person-circle me-1"></i> {{ user.username }}
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="{% url 'logout' %}">
+              <i class="bi bi-box-arrow-right me-1 text-danger"></i> Cerrar sesión
+            </a></li>
+          </ul>
+        </li>
+        {% else %}
+        <li class="nav-item">
+          <a href="{% url 'signin' %}" class="nav-link">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{% url 'signup' %}" class="nav-link">
+            <i class="bi bi-person-plus me-1"></i> Registrarse
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<script>
+  // Funcionalidad global para cambiar el tema desde cualquier página
+  (function() {
+    const themeToggle = document.getElementById('globalThemeToggle');
+    const themeIcon = document.getElementById('globalThemeIcon');
+    
+    // Verificar preferencia guardada y actualizar icono
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    if (savedTheme === 'dark' && themeIcon) {
+      themeIcon.className = 'bi bi-sun-fill';
+    }
+    
+    // Cambiar tema al hacer clic
+    if (themeToggle && themeIcon) {
+      themeToggle.addEventListener('click', function() {
+        document.body.classList.toggle('dark-mode');
+        
+        if (document.body.classList.contains('dark-mode')) {
+          localStorage.setItem('theme', 'dark');
+          themeIcon.className = 'bi bi-sun-fill';
+        } else {
+          localStorage.setItem('theme', 'light');
+          themeIcon.className = 'bi bi-moon-fill';
+        }
+      });
+    }
+  })();
+</script>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskAPP</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css"> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/js/bootstrap.bundle.min.js"></script> -->
+    
+
+    <style>
+      /* Estilos globales para modo oscuro */
+      body.dark-mode {
+        background-color: #121212 !important;
+        color: #e0e0e0 !important;
+      }
+      
+      body.dark-mode .navbar-dark {
+        background-color: #1a1a1a !important;
+      }
+      
+      body.dark-mode .container {
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+
+      /*Añade una animación al hacer hover */
+      .card-hover {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      }
+      .card-hover:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,.175) !important;
+      }
+      /* Color naranja para el progressbar */
+      .bg-custom-orange {
+    background-color: #e09c1c !important; 
+  }
+      .btn-outline-custom-orange {
+        /* Color del texto y del borde (estado normal) */
+        --bs-btn-color: #e09c1c;
+        --bs-btn-border-color: #e09c1c;
+
+        /* Color del fondo en hover/active */
+        --bs-btn-hover-bg: #e09c1c;
+        --bs-btn-active-bg: #e09c1c;
+      
+        /* Color del "brillo" (shadow) al hacer focus */
+        /* Son los valores RGB de #FFA500 -> 255, 165, 0 */
+        --bs-btn-focus-shadow-rgb: 255, 165, 0;
+
+        /* Bootstrap se encarga del resto, como poner el 
+        texto en blanco automáticamente durante el hover.
+        */
+      }
+      .text-custom-orange {
+        color: #e09c1c !important;
+      }
+    </style>
+    
+    <script>
+      // Aplicar tema guardado globalmente al cargar la página
+      (function() {
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+          document.body.classList.add('dark-mode');
+        }
+      })();
+    </script>
+    
+  </head>
+  <body>
+    {% include '_navbar.html' %}
+    
+    {% block content %}
+    {% endblock %}
+  </body>
+</html>
