@@ -1,8 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-<<<<<<< HEAD
-=======
 from django.contrib import messages
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 from django.db import IntegrityError
@@ -11,11 +8,9 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.template.loader import get_template
 from .models import Task, TaskPermission
-<<<<<<< HEAD
 from .forms import TaskForm
 from .auth_forms import SignUpForm, SignInForm
 from .permissions import user_has_permission, get_user_accessible_tasks
-=======
 from .forms import TaskForm, TaskStatusOnlyForm
 from .auth_forms import SignUpForm, SignInForm
 
@@ -31,7 +26,6 @@ from .models import Task
 from .forms import TaskStatusOnlyForm 
 from .permissions import get_user_accessible_tasks
 from .forms import TaskForm
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
 
 def signup(request):
     if request.method == 'GET':
@@ -64,8 +58,6 @@ def tasks_completed(request):
     return render(request, 'tasks.html', {"tasks": tasks})
 
 
-<<<<<<< HEAD
-=======
 # @login_required
 # def create_task(request):
 #     if request.method == "GET":
@@ -80,7 +72,6 @@ def tasks_completed(request):
 #         except ValueError:
 #             return render(request, 'create_task.html', {"form": TaskForm, "error": "Error al crear la Tarea."})
 
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
 @login_required
 def create_task(request):
     if request.method == "GET":
@@ -88,14 +79,6 @@ def create_task(request):
     else:
         try:
             form = TaskForm(request.POST)
-<<<<<<< HEAD
-            new_task = form.save(commit=False)
-            new_task.user = request.user
-            new_task.save()
-            return redirect('tasks')
-        except ValueError:
-            return render(request, 'create_task.html', {"form": TaskForm, "error": "Error al crear la Tarea."})
-=======
             
             if form.is_valid(): # Agregamos la validación del formulario
                 new_task = form.save(commit=False)
@@ -115,7 +98,6 @@ def create_task(request):
         except ValueError:
             # Aquí manejas errores de tipo (ej: si se envía un valor no válido para un campo)
             return render(request, 'create_task.html', {"form": TaskForm(request.POST), "error": "Error al crear la Tarea."})
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
 
 
 def home(request):
@@ -145,40 +127,6 @@ def signin(request):
         # Si hay errores (incluyendo CAPTCHA)
         return render(request, 'signin.html', {"form": form})
 
-<<<<<<< HEAD
-@login_required
-@user_has_permission('view')
-def task_detail(request, task_id):
-    task = get_object_or_404(Task, pk=task_id)
-    
-    # Verificar permisos de edición
-    can_edit = task.has_permission(request.user, 'edit')
-    
-    if request.method == 'GET':
-        form = TaskForm(instance=task)
-        return render(request, 'task_detail.html', {
-            'task': task, 
-            'form': form,
-            'can_edit': can_edit
-        })
-    else:
-        # Verificar que el usuario puede editar
-        if not can_edit:
-            from django.contrib import messages
-            messages.error(request, 'No tienes permiso para editar esta tarea.')
-            return redirect('task_detail', task_id=task_id)
-        
-        try:
-            form = TaskForm(request.POST, instance=task)
-            form.save()
-            return redirect('tasks')
-        except ValueError:
-            return render(request, 'task_detail.html', {
-                'task': task, 
-                'form': form, 
-                'error': 'Error al actualizar la Tarea.',
-                'can_edit': can_edit
-=======
 # @login_required
 # @user_has_permission('view')
 # def task_detail(request, task_id):
@@ -290,7 +238,6 @@ def task_detail(request, task_id):
                 'form': form, 
                 'can_edit': can_edit
                 # No es necesario pasar 'error', los errores están en form.errors
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
             })
 
 @login_required
@@ -470,9 +417,6 @@ def tasks_details_pdf(request):
         })
         response = HttpResponse(html_content, content_type='text/html')
         response['Content-Disposition'] = 'attachment; filename="tareas_detalle.html"'
-<<<<<<< HEAD
-        return response
-=======
         return response
 
 
@@ -547,4 +491,3 @@ class TaskDeleteView(LoginRequiredMixin, DeleteView):
             raise PermissionDenied("No tienes permiso para eliminar tareas.")
             
         return super().dispatch(request, *args, **kwargs)
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223

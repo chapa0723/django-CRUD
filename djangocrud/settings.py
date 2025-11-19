@@ -86,13 +86,7 @@ WSGI_APPLICATION = 'djangocrud.wsgi.application'
 # Definimos la base de datos
 DATABASES = {
     'default': dj_database_url.config(
-<<<<<<< HEAD
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600
-    )
-}
-=======
-        default='postgresql://postgres:postgres@localhost/postgres',
+        default='postgresql://postgres:Fabriperez290699@127.0.0.1/postgres',
         conn_max_age=600
         )
 }
@@ -101,7 +95,6 @@ DATABASES = {
 #        'NAME': BASE_DIR / 'db.sqlite3',
 #    }
 #}
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
 
 
 # Password validation

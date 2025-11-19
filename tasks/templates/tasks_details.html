@@ -141,17 +141,12 @@
       <a href="{% url 'tasks' %}" class="btn btn-outline-primary">
         <i class="bi bi-arrow-left"></i> Volver a Mis Tareas
       </a>
-<<<<<<< HEAD
-      <a href="{% url 'tasks_details_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-danger" target="_blank">
-        <i class="bi bi-file-pdf"></i> Descargar PDF
-=======
       <a href="{% url 'export_pdf_report' %}?report_type={{ report_type }}&days={{ context.period_days }}" 
    class="btn btn-danger" 
    target="_blank" 
    title="Descargar PDF">
     <i class="bi bi-file-pdf-fill"></i> Descargar PDF
 </a>
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
       </a>
     </div>
   </div>

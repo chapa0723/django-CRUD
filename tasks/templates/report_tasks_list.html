@@ -1,10 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-<<<<<<< HEAD
-
-=======
 {% load task_filters %}
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
 {% block content %}
 <div class="container-fluid mt-4">
 
@@ -46,92 +42,6 @@
     </div>
   </div>
 
-<<<<<<< HEAD
-  {% if context.tasks %}
-  <div class="card border-0 shadow-lg">
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-          <thead class="bg-light">
-            <tr>
-              <th class="py-3 ps-4">Nombre de la Tarea</th>
-              <th class="py-3">Usuario</th>
-              <th class="py-3">Fecha Creación</th>
-              
-              {% if report_type == 'all_tasks' or report_type == 'important_pending' %}
-              <th class="py-3">Estado</th>
-              {% endif %}
-              
-              {% if report_type == 'completed' or report_type == 'all_tasks' %}
-              <th class="py-3">Completada el</th>
-              {% endif %}
-              
-              <th class="py-3 text-end pe-4">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for task in context.tasks %}
-            <tr>
-              <td class="ps-4">
-                <div class="d-flex align-items-center">
-                  {% if task.important %}
-                    <i class="bi bi-star-fill text-danger me-2" title="Importante"></i>
-                  {% endif %}
-                  <div>
-                    <span class="fw-bold d-block text-dark">{{ task.title }}</span>
-                    <small class="text-muted">{{ task.description|truncatewords:8 }}</small>
-                  </div>
-                </div>
-              </td>
-
-              <td>
-                <span class="badge bg-light text-dark border">
-                  <i class="bi bi-person-fill"></i> {{ task.user.username }}
-                </span>
-              </td>
-
-              <td>
-                <small class="text-secondary">
-                  <i class="bi bi-calendar3"></i> {{ task.created|date:"d/m/Y H:i" }}
-                </small>
-              </td>
-
-              {% if report_type == 'all_tasks' or report_type == 'important_pending' %}
-              <td>
-                {% if task.datecompleted %}
-                  <span class="badge bg-success rounded-pill">Completada</span>
-                {% else %}
-                  <span class="badge bg-warning text-dark rounded-pill">Pendiente</span>
-                {% endif %}
-              </td>
-              {% endif %}
-
-              {% if report_type == 'completed' or report_type == 'all_tasks' %}
-              <td>
-                {% if task.datecompleted %}
-                  <small class="text-success fw-bold">
-                    <i class="bi bi-check2-all"></i> {{ task.datecompleted|date:"d/m/Y H:i" }}
-                  </small>
-                {% else %}
-                  <span class="text-muted">-</span>
-                {% endif %}
-              </td>
-              {% endif %}
-
-              <td class="text-end pe-4">
-                <a href="{% url 'task_detail' task.id %}" class="btn btn-sm btn-outline-primary" title="Ver Detalle">
-                  <i class="bi bi-eye"></i>
-                </a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-=======
 {% if context.tasks %}
   <div class="card border-0 shadow-lg">
     <div class="card-body p-0">
@@ -227,7 +137,6 @@
       </div>
     </div>
   </div>
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
   {% else %}
     <div class="alert alert-warning d-flex align-items-center mt-3" role="alert">
       <i class="bi bi-exclamation-triangle-fill flex-shrink-0 me-2 fs-4"></i>
@@ -237,9 +146,6 @@
     </div>
   {% endif %}
 
-<<<<<<< HEAD
-=======
   
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
 </div>
 {% endblock %}

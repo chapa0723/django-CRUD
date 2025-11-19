@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-__pycache__
-#db.sqlite3
-=======
 venv
 __pycache__
 db.sqlite3
@@ -9,4 +5,3 @@ db.sqlite3
 env
 /env/
 /staticfiles/
->>>>>>> 61463ff4fca98f874846df469dc5eba6d309b223
