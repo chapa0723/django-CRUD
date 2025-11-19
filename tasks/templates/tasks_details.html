@@ -257,14 +257,12 @@
 
           <!-- Filtro por Fecha -->
           <div class="mb-3">
-            <label for="date_from" class="form-label">Fecha Desde</label>
-            <input type="date" class="form-control" id="date_from" name="date_from" value="{{ filter_date_from }}">
-          </div>
+                  <label for="date_from" class="form-label">Fecha Desde</label>
+                  <input type="date" class="form-control" id="date_from" name="date_from" value="{{ filter_date_from }}" max="{% now "Y-m-d" %}"> </div>
 
           <div class="mb-3">
-            <label for="date_to" class="form-label">Fecha Hasta</label>
-            <input type="date" class="form-control" id="date_to" name="date_to" value="{{ filter_date_to }}">
-          </div>
+                  <label for="date_to" class="form-label">Fecha Hasta</label>
+                  <input type="date" class="form-control" id="date_to" name="date_to" value="{{ filter_date_to }}" max="{% now "Y-m-d" %}"> </div>
 
           <!-- Mantener parámetros de ordenamiento -->
           <input type="hidden" name="sort" id="sortField" value="{{ sort_by }}">

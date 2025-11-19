@@ -4,8 +4,8 @@
 
 <div class="container mt-5">
   <div class="text-center py-5">
-    <h1 class="fw-bold text-primary mb-3">
-      <i class="bi bi-house-door-fill me-2"></i> Bienvenido a <span class="text-dark">Mi Gestor de Tareas</span>
+    <h1 class="fw-bold text-black mb-3">
+      <i class="bi bi-house-door-fill me-2"></i> Bienvenido a <img src="{% static 'tasks/images/home-logo.png' %}" alt="Logo home" width="auto" height="200" style="vertical-align: middle; max-height: 4em" class="d-inline-block align-text-bottom">
     </h1>
     <p class="lead text-muted mb-4">
       Organizá tus pendientes, marcá lo importante y mantené el control de tu productividad diaria.
@@ -26,7 +26,7 @@
         <a href="{% url 'signin' %}" class="btn btn-outline-primary btn-lg">
           <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
         </a>
-        <a href="{% url 'signup' %}" class="btn btn-success btn-lg">
+        <a href="{% url 'signup' %}" class="btn btn-success btn-lg" style="display:none">
           <i class="bi bi-person-plus-fill me-1"></i> Registrarse
         </a>
       {% endif %}
