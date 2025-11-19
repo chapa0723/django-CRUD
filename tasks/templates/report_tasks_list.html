@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load task_filters %}
 {% block content %}
 <div class="container-fluid mt-4">
 
@@ -71,12 +71,13 @@
               <tbody>
                   {% for task in context.tasks %}
                   <tr>
+                    <!-- fecha de creacion de tarea-->
                       <td class="ps-3 align-middle">
                           <small class="text-secondary">
                               <i class="bi bi-calendar3"></i> {{ task.created|date:"d/m/Y H:i" }}
                           </small>
                       </td>
-                    
+                    <!-- nombre de tarea -->
                       <td class="align-middle">
                           <div class="d-flex align-items-center">
                               {% if task.important %}
@@ -85,13 +86,23 @@
                               <span class="fw-bold text-dark">{{ task.title }}</span>
                           </div>
                       </td>
-                    
+                    <!-- descripcion de la tarea -->
                       <td>
                           <small class="text-muted">{{ task.description|truncatewords:15 }}</small>
                       </td>
-                    
-                      <td class="align-middle">{{ task.user.username }}</td>
-                    
+                    <!-- usuario y rol -->
+                      
+                      <td>
+                          {% if task.assigned_user %}
+                              <span class="d-block">{{ task.assigned_user.username }}</span> 
+                              <span class="badge bg-secondary rounded-pill mt-1">
+                                  {{ task.assigned_user|get_user_role }} 
+                              </span>
+                          {% else %}
+                              <span class="badge bg-danger">SIN ASIGNAR</span>
+                          {% endif %}
+                      </td>
+                    <!-- estado de la tarea -->
                       {% if report_type == 'all_tasks' %}
                       <td>
                           {% if task.datecompleted %}

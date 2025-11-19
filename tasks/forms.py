@@ -24,3 +24,11 @@ class TaskForm(forms.ModelForm):
                 'class': 'form-check-input'
             }),
         }
+
+
+class TaskStatusOnlyForm(forms.ModelForm):
+    # Formulario limitado para el rol Ventas.
+    class Meta:
+        model = Task
+        fields = ['datecompleted', 'description', 'title']
+        

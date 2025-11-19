@@ -17,6 +17,8 @@ from django.contrib import admin
 from django.urls import path, include
 from tasks import views
 from tasks import reports
+from tasks.views import TaskDeleteView, TaskEditView
+
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -31,7 +33,10 @@ urlpatterns = [
     path('create_task/', views.create_task, name='create_task'),
     path('tasks/<int:task_id>', views.task_detail, name='task_detail'),
     path('taks/<int:task_id>/complete', views.complete_task, name='complete_task'),
-    path('tasks/<int:task_id>/delete', views.delete_task, name='delete_task'),
+    # path('tasks/<int:task_id>/delete', views.delete_task, name='delete_task'),
+    # path('tasks/<int:pk>/edit/', views.TaskEditView.as_view(), name='task_edit'),
+    path('tasks/<int:pk>/edit/', views.TaskEditView.as_view(), name='task_edit'),
+    path('tasks/<int:pk>/delete/', views.TaskDeleteView.as_view(), name='task_delete'),
     
     # URLs para reportes
     path('reports/', reports.task_reports, name='reports'),
@@ -45,6 +50,7 @@ urlpatterns = [
     path('completed/', reports.report_completed_tasks, name='report_completed_tasks'),
     path('pending/', reports.report_pending_tasks, name='report_pending_tasks'),
     path('important/', reports.report_important_tasks, name='report_important_tasks'),
+    
     
     # URLs para CAPTCHA
     path('captcha/', include('captcha.urls')),

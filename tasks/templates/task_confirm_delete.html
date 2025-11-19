@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Confirmar Eliminación{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-danger shadow-lg">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> Confirmar Eliminación
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <p class="lead">
+                        ¿Estás absolutamente seguro de que deseas eliminar la tarea:
+                        <strong>"{{ object.title }}"</strong>?
+                    </p>
+                    <p class="text-danger">
+                        Esta acción es irreversible.
+                    </p>
+                </div>
+                <div class="card-footer d-flex justify-content-between">
+                    <form method="post">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Sí, Eliminar Tarea
+                        </button>
+                    </form>
+                    
+                    <a href="{% url 'task_detail' object.pk %}" class="btn btn-secondary">
+                        Cancelar
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

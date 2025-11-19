@@ -5,6 +5,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import Group
+from django.db.models import Q
 from functools import wraps
 from .models import Task, TaskPermission
 
@@ -43,23 +45,45 @@ def user_has_permission(permission_type='view'):
     return decorator
 
 
+# def get_user_accessible_tasks(user):
+#     """
+#     Retorna todas las tareas a las que un usuario tiene acceso
+    
+#     Incluye:
+#     - Tareas propias del usuario
+#     - Tareas compartidas con permisos
+#     """
+#     # Tareas propias
+#     owned_tasks = Task.objects.filter(user=user)
+    
+#     # Tareas compartidas con el usuario
+#     shared_task_ids = TaskPermission.objects.filter(user=user).values_list('task_id', flat=True)
+#     shared_tasks = Task.objects.filter(id__in=shared_task_ids)
+    
+#     # Combinar y retornar
+#     return owned_tasks | shared_tasks
+
 def get_user_accessible_tasks(user):
-    """
-    Retorna todas las tareas a las que un usuario tiene acceso
+    # Regla 1: Superusuario / Administrador siempre ven todo
+    if user.is_superuser or user.groups.filter(name='Administrador').exists():
+        return Task.objects.all()
+
+    # Regla 2: Usuario es propietario (user)
+    q_filter = Q(user=user) | Q(assigned_user=user)
     
-    Incluye:
-    - Tareas propias del usuario
-    - Tareas compartidas con permisos
-    """
-    # Tareas propias
-    owned_tasks = Task.objects.filter(user=user)
+    # Regla 3: Tareas compartidas por TaskPermission
+    q_filter |= Q(task_permissions__user=user)
     
-    # Tareas compartidas con el usuario
-    shared_task_ids = TaskPermission.objects.filter(user=user).values_list('task_id', flat=True)
-    shared_tasks = Task.objects.filter(id__in=shared_task_ids)
-    
-    # Combinar y retornar
-    return owned_tasks | shared_tasks
+    # Regla 4: Visibilidad del Rol Ventas/Soporte
+    if user.groups.filter(name__in=['Ventas', 'Soporte Técnico']).exists():
+        # Ver tareas que le pertenecen, O las que tiene asignadas, O las compartidas.
+        
+        if user.groups.filter(name='Ventas').exists():
+            # Ventas tiene permiso especial para ver tareas sin asignar (null)
+            q_filter |= Q(assigned_user__isnull=True)
+            
+    # Filtra las tareas de todos los orígenes de permiso
+    return Task.objects.filter(q_filter).distinct()
 
 
 def can_share_task(user, task):
@@ -103,3 +127,15 @@ def share_task(task, user, can_edit=False, can_delete=False, granted_by=None):
     
     return permission
 
+def get_user_role(user):
+    """Devuelve el nombre del grupo al que pertenece un usuario."""
+    if user.is_superuser:
+        return "Desarrollador"
+    
+    # Intenta obtener el primer grupo al que pertenece
+    try:
+        group = user.groups.all().first()
+        return group.name
+    except AttributeError:
+        # El usuario no tiene grupos asignados (aunque esté logueado)
+        return "Sin Rol"
