@@ -7,8 +7,8 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.template.loader import get_template
-from .models import Task, TaskPermission
-from .forms import TaskForm
+from .models import Task, TaskPermission, TaskInteraction
+from .forms import TaskForm, TaskInteractionForm
 from .auth_forms import SignUpForm, SignInForm
 from .permissions import user_has_permission, get_user_accessible_tasks
 from .forms import TaskForm, TaskStatusOnlyForm
@@ -90,6 +90,14 @@ def create_task(request):
                     new_task.assigned_user = request.user 
                     
                 new_task.save()
+                # 🚨 LÓGICA DE INTERACCIÓN INICIAL (Paso 2) 🚨
+                TaskInteraction.objects.create(
+                task=new_task,
+                message="Esta es la primera interacción con el cliente",
+                is_client_message=True # ¡TRUE para el cliente!
+            )
+            # --------------------------------------------
+                
                 return redirect('tasks')
             else:
                  # Si la validación del formulario falla (ej: campo requerido vacío)
@@ -165,80 +173,83 @@ def signin(request):
 @login_required
 @user_has_permission('view')
 def task_detail(request, task_id):
-    # El decorador @user_has_permission ya verifica si el usuario puede ver la tarea
-    # y redirige si no tiene permiso.
     task = get_object_or_404(Task, pk=task_id)
     
-    # 1. Chequeo de Roles y Permisos
+    # 1. Definición de Variables y Roles
     can_edit = task.has_permission(request.user, 'edit')
-    current_role = get_user_role(request.user) # Obtenemos el rol para la lógica del formulario
-
-    # 2. Definir qué Formulario Usar (Lógica de Roles)
+    current_role = get_user_role(request.user)
+    
+    is_admin = current_role == 'Administrador' or request.user.is_superuser
+    is_pending = task.datecompleted is None
+    
     is_admin_or_soporte = request.user.is_superuser or \
                           current_role in ['Administrador', 'Soporte Técnico']
+    is_ventas_only = (current_role == 'Ventas' and not is_admin_or_soporte)
+    FormClass = TaskStatusOnlyForm if is_ventas_only else TaskForm
     
-    is_ventas_only = (current_role == 'Ventas' and not is_admin_or_soporte) # Evita multi-grupo
-
-    # Seleccionar la clase de formulario
-    if is_ventas_only:
-        FormClass = TaskStatusOnlyForm
-    else:
-        FormClass = TaskForm
-
-
-    if request.method == 'GET':
-        # Renderiza el formulario con la clase seleccionada
-        form = FormClass(instance=task) 
-        
-        # Agregamos la variable is_admin para el botón Eliminar
-        is_admin = current_role == 'Administrador' or request.user.is_superuser
-        
-        #Lógica para el botón "Marcar como Completada"
-        is_pending = task.datecompleted is None
-        
-        #Lógica para el botón "Eliminar" (para el template)
-        is_admin = request.user.groups.filter(name='Administrador').exists()
-        
-        if request.method == 'GET':
-        # Mantenemos la instancia del formulario (FormClass) en la vista
-        # para que el bloque POST sepa qué campos puede validar.
-        # No importa que no se muestre en el template.
-            form = FormClass(instance=task)
-
-        return render(request, 'task_detail.html', {
-            'task': task, 
-            'form': form,
-            'can_edit': can_edit,
-            'is_pending': is_pending,
-            'is_admin': is_admin, # <-- Variable para mostrar/ocultar el botón "Eliminar"
-            'current_role': current_role, # <-- Variable opcional para debug/display
-            'is_superuser': request.user.is_superuser,
-        })
+    # --- Inicialización de variables (se usarán en el contexto final) ---
+    interactions = task.interactions.all()
     
-    else: # request.method == 'POST'
-        # 3. Bloque POST (Edición)
-        if not can_edit:
-            # Aunque ya se checó en el GET, se vuelve a checar por seguridad de POST
-            messages.error(request, 'No tienes permiso para editar esta tarea.')
-            return redirect('task_detail', task_id=task_id)
+    # Inicialización de formularios: Se harán a continuación, dependiendo del método
+    form = FormClass(instance=task)
+    chat_form = TaskInteractionForm()
+
+
+    if request.method == 'POST':
         
-        # Procesar con el formulario correcto (FormClass)
-        form = FormClass(request.POST, instance=task)
+        # --- 1. CASO CHAT: Prioridad si viene el campo oculto 'chat_submit' ---
+        if 'chat_submit' in request.POST:
+            chat_form = TaskInteractionForm(request.POST) # Inicializamos con datos POST
+            if chat_form.is_valid():
+                new_interaction = chat_form.save(commit=False)
+                new_interaction.task = task
+                new_interaction.user = request.user
+                new_interaction.is_client_message = False
+                new_interaction.save()
+                messages.success(request, 'Respuesta de chat enviada.')
+                return redirect('task_detail', task_id=task_id)
+            else:
+                 # Si el chat falla, el flujo continúa para mostrar errores
+                 messages.error(request, 'No se pudo enviar el mensaje. Está vacío.')
         
-        if form.is_valid(): 
-            form.save()
-            messages.success(request, 'Tarea actualizada con éxito.')
-            return redirect('tasks')
         
-        else:
-            # Retorna el formulario con los errores si falla la validación
-            messages.error(request, 'Error al actualizar la Tarea. Revisa los campos.')
-            return render(request, 'task_detail.html', {
-                'task': task, 
-                'form': form, 
-                'can_edit': can_edit
-                # No es necesario pasar 'error', los errores están en form.errors
-            })
+        # --- 2. CASO EDICIÓN DE TAREA (El problema) ---
+        # Verificamos si el POST contiene campos de edición del formulario principal.
+        elif 'title' in request.POST or 'description' in request.POST: 
+            
+            if not can_edit:
+                messages.error(request, 'No tienes permiso para editar esta tarea.')
+                return redirect('task_detail', task_id=task_id)
+
+            form = FormClass(request.POST, instance=task) # Inicializamos con datos POST
+            if form.is_valid(): 
+                form.save()
+                messages.success(request, 'Tarea actualizada con éxito.')
+                return redirect('tasks')
+            else:
+                # Si el formulario de edición falla, el flujo continúa para mostrar errores
+                messages.error(request, 'Error al actualizar la Tarea. Revisa los campos.')
+
+    # 3. Renderizado Final (GET y POST que fallan terminan aquí)
+    # -----------------------------------------------------------
+    
+    # Si el método es GET, o si el POST falló (Edición o Chat), renderizamos la página.
+    # El formulario 'form' y 'chat_form' contendrán los datos POST y errores si hubo un fallo arriba.
+    
+    return render(request, 'task_detail.html', {
+        'task': task, 
+        'form': form, # Contiene instance=task (GET) o instance=POST+Errores
+        'chat_form': chat_form, # Contiene instancia vacía o con errores del POST
+        'interactions': interactions, # Historial de chat
+        
+        # Variables de permiso para el template
+        'can_edit': can_edit,
+        'is_pending': is_pending,
+        'is_admin': is_admin,
+        'is_superuser': request.user.is_superuser,
+        'current_role': current_role,
+    })
+    
 
 @login_required
 @user_has_permission('edit')

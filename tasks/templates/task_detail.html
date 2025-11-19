@@ -1,110 +1,138 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load task_filters %} 
+{% load widget_tweaks %}
+
 {% block content %}
-
 <div class="container mt-5">
-    <div class="card shadow-sm border-0">
-        <div class="card-body">
-            
-            <h2 class="card-title text-black fw-bold mb-3">
-                <i class="bi bi-journal-text me-2"></i>{{ task.title }}
-                {% if task.important %}
-                    <i class="bi bi-star-fill text-danger" title="Importante"></i>
-                {% endif %}
-            </h2>
-            
-            {% load task_filters %}
-            <p class="text-muted mb-2">
-                <strong><i class="bi bi-person-fill me-1"></i> Asignado a:</strong> 
-                {% if task.assigned_user %}
-                    {{ task.assigned_user.username }} 
-                    <span class="badge bg-primary">{{ task.assigned_user|get_user_role }}</span>
-                {% else %}
-                    <span class="badge bg-danger">Tarea No Asignada</span>
-                {% endif %}
-            </p>
-            <p class="text-muted mb-4">
-                <strong><i class="bi bi-calendar me-1"></i> Creada:</strong> {{ task.created|date:"d/m/Y H:i" }}
-            </p>
-            
-            {% if task.datecompleted %}
-                <div class="alert alert-success py-2">
-                    <i class="bi bi-check-circle-fill me-2"></i> Tarea Completada el {{ task.datecompleted|date:"d/m/Y" }}
+    <div class="row">
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-lg h-100">
+                <div class="card-body">
+                    
+                    <h2 class="card-title text-primary fw-bold mb-3">
+                        <i class="bi bi-journal-text me-2"></i>Detalles de la Tarea
+                        {% if task.important %}<i class="bi bi-star-fill text-warning" title="Importante"></i>{% endif %}
+                    </h2>
+                    
+                    <p class="text-muted mb-2"><strong><i class="bi bi-person-fill me-1"></i> Creador:</strong> {{ task.user.username }}</p>
+                    <p class="text-muted mb-4"><strong><i class="bi bi-calendar me-1"></i> Creada:</strong> {{ task.created|date:"d/m/Y H:i" }}</p>
+
+                    {% if can_edit %}
+                        <hr>
+                        <h5 class="mb-3 text-secondary">Edición de Campos:</h5>
+                        
+                        <form method="POST" class="mb-4">
+                            {% csrf_token %}
+
+                            <div class="mb-3">
+                                <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">Título:</label>
+                                
+                                {{ form.title|add_class:"form-control form-control-lg" }}
+                                
+                                {% for error in form.title.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">Descripción:</label>
+                                
+                                {{ form.description|add_class:"form-control" }}
+                                
+                                {% for error in form.description.errors %}<div class="text-danger small">{{ error }}</div>{% endfor %}
+                            </div>
+
+                            <div style="display: none;">
+                                {{ form.datecompleted }} 
+                                {{ form.important }}
+                            </div>
+
+                            <button type="submit" class="btn btn-primary mt-3">
+                                <i class="bi bi-save me-1"></i> Guardar Cambios
+                            </button>
+                        </form>
+                    {% else %}
+                        <hr>
+                        <p><strong>Descripción:</strong></p>
+                        <div class="alert alert-light">{{ task.description|linebreaksbr }}</div>
+                    {% endif %}
+                    
+                    <div class="d-flex flex-wrap gap-2 justify-content-end mt-3 pt-3 border-top">
+                        
+                        {% if not task.datecompleted and can_edit %}
+                            <form action="{% url 'complete_task' task.pk %}" method="POST" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-check2-circle me-1"></i> Marcar como Completada
+                                </button>
+                            </form>
+                        {% endif %}
+
+                        {% if request.user.is_superuser or is_admin %}
+                            <a href="{% url 'task_delete' task.pk %}" class="btn btn-danger">
+                                <i class="bi bi-trash me-1"></i> Eliminar
+                            </a>
+                        {% endif %}
+                        
+                        <a href="{% url 'tasks' %}" class="btn btn-outline-secondary">Volver</a>
+                    </div>
                 </div>
-            {% else %}
-                <div class="alert alert-warning py-2 text-dark">
-                    <i class="bi bi-clock-fill me-2"></i> Estado: Pendiente
-                </div>
-            {% endif %}
-
-            {% if can_edit %}
-            <hr>
-            <h5 class="mb-3 text-secondary">Edición de Tarea:</h5>
-
-            <form method="POST" class="mb-4">
-                {% csrf_token %}
-
-                <div class="mb-3">
-                    <label for="{{ form.title.id_for_label }}" class="form-label fw-bold">Título:</label>
-                    {{ form.title }}
-
-                    {% for error in form.title.errors %}
-                        <div class="text-danger small">{{ error }}</div>
-                    {% endfor %}
-                </div>
-
-                <div class="mb-3">
-                    <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">Descripción:</label>
-                    {{ form.description }} 
-
-                    {% for error in form.description.errors %}
-                        <div class="text-danger small">{{ error }}</div>
-                    {% endfor %}
-                </div>
-
-                <div style="display: none;">
-                    {{ form.datecompleted }} 
-                    {{ form.important }}
-                </div>
-
-                <button type="submit" class="btn btn-primary">
-                    <i class="bi bi-save me-1"></i> Guardar Cambios
-                </button>
-
-            </form>
-
-            {% else %}
-                <hr>
-                <p><strong>Descripción:</strong></p>
-                <div class="alert alert-light">{{ task.description|linebreaksbr }}</div>
-            {% endif %}
-            <hr>
-            <div class="d-flex flex-wrap gap-2 justify-content-end">
-                
-
-              <a href="{% url 'tasks' %}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Volver a Mis Tareas
-                </a>
-                {% if can_edit and not task.datecompleted %}
-                    <form action="{% url 'complete_task' task.id %}" method="POST" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-success">
-                            <i class="bi bi-check2-circle me-1"></i> Marcar como Completada
-                        </button>
-                    </form>
-                {% endif %}
-
-                {% if request.user.is_superuser or is_admin %}
-                    <a href="{% url 'task_delete' task.id %}" class="btn btn-danger">
-                        <i class="bi bi-trash me-1"></i> Eliminar
-                    </a>
-                {% endif %}
-
-                
             </div>
-
         </div>
+        
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-lg h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0 text-dark">
+                        <i class="bi bi-chat-dots me-2"></i> Historial de Interacciones
+                    </h5>
+                </div>
+                <div class="card-body d-flex flex-column" style="max-height: 75vh; overflow-y: auto;">
+                    
+                    <div class="flex-grow-1 overflow-auto mb-3">
+                        {% for interaction in interactions %}
+                            <div class="d-flex 
+                                {% if interaction.is_client_message %}justify-content-start{% else %}justify-content-end{% endif %}">
+                                
+                                <div class="card 
+                                    {% if interaction.is_client_message %}bg-success text-white{% else %}bg-secondary text-white{% endif %} 
+                                    mb-2" style="max-width: 75%;">
+                                    
+                                    <div class="card-body p-2">
+                                        <p class="mb-0 small">
+                                            {{ interaction.message }}
+                                        </p>
+                                        <small class="text-white-50 float-end mt-1" style="font-size: 0.65rem;">
+                                            {{ interaction.timestamp|date:"H:i" }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if can_edit %}
+                        <form method="POST" class="mt-auto">
+                            {% csrf_token %}
+                            <input type="hidden" name="chat_submit" value="1"> 
+                            
+                            <div class="input-group">
+                                {{ chat_form.message|add_class:"form-control"|attr:"placeholder:Escribe tu respuesta..." }}
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-send-fill"></i> Enviar
+                                </button>
+</div>
+                            {% for error in chat_form.message.errors %}
+                                <p class="text-danger small mt-1">{{ error }}</p>
+                            {% endfor %}
+                        </form>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+        
     </div>
 </div>
-
 {% endblock %}

@@ -107,3 +107,21 @@ class TaskPermission(models.Model):
   
   def __str__(self):
     return f'{self.user.username} - {self.task.title}'
+
+# Modelo para Chat / Interaccion
+
+class TaskInteraction(models.Model):
+    task = models.ForeignKey('Task', on_delete=models.CASCADE, related_name='interactions')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, verbose_name='Empleado/Remitente')
+    message = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    # True = Cliente (bg-success), False = Empleado (bg-secondary)
+    is_client_message = models.BooleanField(default=False) 
+
+    class Meta:
+        verbose_name = 'Interacción de Tarea'
+        verbose_name_plural = 'Interacciones de Tareas'
+        ordering = ['timestamp']
+
+    def __str__(self):
+        return f'Interacción para {self.task.title} at {self.timestamp.strftime("%H:%M")}'
