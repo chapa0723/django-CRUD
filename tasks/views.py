@@ -12,17 +12,7 @@ from .auth_forms import SignUpForm, SignInForm
 from .permissions import user_has_permission, get_user_accessible_tasks
 
 def signup(request):
-    if request.method == 'GET':
-        form = SignUpForm()
-        return render(request, 'signup.html', {"form": form})
-    else:
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            return redirect('tasks')
-        else:
-            return render(request, 'signup.html', {"form": form})
+    return redirect('signin')
 
 
 @login_required
